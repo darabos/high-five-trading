@@ -1,0 +1,12 @@
+{
+  "name": "high-five-trading",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Action stock exchange game for Repl.it Game Jam 2019",
+  "repository": "git@github.com:darabos/high-five-trading.git",
+  "author": "Daniel Darabos <darabos.daniel@gmail.com>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "three": "^0.102.1"
+  }
+}

@@ -1,2 +1,3 @@
-# high-five-trading
-Action stock exchange game for Repl.it Game Jam 2019
+# High Five Trading
+
+An action stock exchange game for [Repl.it Game Jam 2019](https://repl.it/jam).

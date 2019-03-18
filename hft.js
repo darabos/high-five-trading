@@ -95,7 +95,7 @@ function addPlayer() {
   scene.add(obj);
   return obj;
 }
-const player = { i: 10, j: 10, money: 1000, obj: addPlayer() };
+const player = { i: 10, j: 10, stocks: 1000, obj: addPlayer(), buyPrice: 1 };
 
 const map = {
   height: function(i, j, t) {
@@ -104,25 +104,36 @@ const map = {
   },
 };
 
+function ij2vec(i, j) {
+  return new THREE.Vector3(
+    i * 10 - 100,
+    3 + 10 * map.height(i, j, t),
+    j * 10);
+}
+
 let startTime;
+let t;
 function animate(timestamp) {
 	requestAnimationFrame(animate);
   if (startTime === undefined) { startTime = timestamp; }
-  const t = timestamp - startTime;
+  t = timestamp - startTime;
   for (let i = 0; i < 20; ++i) {
     for (let j = 0; j < 20; ++j) {
       stocks[i][j].scale.y = map.height(i, j, t);
     }
   }
-  const pt = new THREE.Vector3(
-    player.i * 10 - 100,
-    3 + 10 * map.height(player.i, player.j, t),
-    player.j * 10);
-  player.obj.position = player.obj.position.lerp(pt, 0.4);
-  player.obj.rotation.y = 0.01 * t;
+  const pt = ij2vec(player.i, player.j);
+  player.obj.position.lerp(pt, 0.2);
+  pt.y += 10;
+  player.obj.lookAt(pt);
+  player.obj.rotation.z = 0.01 * t;
+
+  for (let e of effects) {
+    e.update(t);
+  }
 	renderer.render(scene, camera);
+  showCapital(Math.floor(player.stocks * map.height(player.i, player.j, t)));
 }
-animate();
 
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -131,7 +142,28 @@ function onWindowResize() {
 }
 window.addEventListener('resize', onWindowResize, false);
 
+const effects = [];
+function addBoom(i, j, gain) {
+  if (gain === 0) { return; }
+  const g = Math.min(5, Math.abs(gain * 5));
+  const geo = new THREE.LatheGeometry([new THREE.Vector2(10, 0), new THREE.Vector2(10 - g, 0)], 50);
+  const mat = new THREE.MeshBasicMaterial(gain > 0 ? { color: 0x80ff40 } : { color: 0xff6060 });
+  const b = new THREE.Mesh(geo, mat);
+  b.position.copy(ij2vec(i, j));
+  scene.add(b);
+  effects.push(b);
+  const start = t;
+  b.update = function() {
+    b.scale.multiplyScalar(1.1);
+    if (start + 1000 < t) {
+      scene.remove(b);
+      effects.splice(effects.indexOf(b), 1);
+    }
+  };
+}
+
 function onKeyDown(evt) {
+  const {i, j} = player;
   if (evt.key === 'ArrowLeft') {
     player.i -= 1;
   } else if (evt.key === 'ArrowRight') {
@@ -141,5 +173,22 @@ function onKeyDown(evt) {
   } else if (evt.key === 'ArrowDown') {
     player.j += 1;
   }
+  if (i !== player.i || j !== player.j) {
+    const h0 = map.height(i, j, t);
+    addBoom(i, j, h0 - player.buyPrice);
+    const h1 = map.height(player.i, player.j, t);
+    player.stocks = Math.max(1, Math.floor(h0 * player.stocks / h1));
+    player.buyPrice = h1;
+  }
 }
 document.addEventListener('keydown', onKeyDown, false);
+
+document.body.insertAdjacentHTML('beforeend', `
+<div style="border: 2px solid white; position: absolute; top: 10px; left: 10px; width: 50px; height: 300px;">
+  <div id="capital" style="background: white; position: absolute; bottom: 0; width: calc(100% - 10px); margin: 5px; height: 200px;">
+  </div>
+</div>`);
+function showCapital(c) {
+  document.getElementById('capital').style.height = 0.1 * c + 'px';
+}
+animate();

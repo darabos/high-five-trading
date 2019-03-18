@@ -76,7 +76,6 @@ function addStocks() {
     for (let j = 0; j < 20; ++j) {
       const geo = new THREE.BoxGeometry(5, 20, 5);
       const mat = new THREE.MeshPhongMaterial( { color: 0x156289, emissive: 0x072534, flatShading: true } );
-
       const block = new THREE.Mesh(geo, mat);
       block.position.x = -100 + i * 10;
       block.position.z = j * 10;
@@ -89,6 +88,22 @@ function addStocks() {
 }
 const stocks = addStocks();
 
+function addPlayer() {
+  const geo = new THREE.SphereGeometry(3, 4, 2);
+  const mat = new THREE.MeshPhongMaterial( { color: 0x896215, emissive: 0x342507, flatShading: true } );
+  const obj = new THREE.Mesh(geo, mat);
+  scene.add(obj);
+  return obj;
+}
+const player = { i: 10, j: 10, money: 1000, obj: addPlayer() };
+
+const map = {
+  height: function(i, j, t) {
+    const phi = 0.005 * t - 0.5 * Math.sqrt((i - 10) * (i - 10) + (j - 10) * (j - 10));
+    return 1 + 0.2 * Math.sin(phi);
+  },
+};
+
 let startTime;
 function animate(timestamp) {
 	requestAnimationFrame(animate);
@@ -96,10 +111,13 @@ function animate(timestamp) {
   const t = timestamp - startTime;
   for (let i = 0; i < 20; ++i) {
     for (let j = 0; j < 20; ++j) {
-      const phi = 0.005 * t - 0.5 * Math.sqrt((i - 10) * (i - 10) + (j - 10) * (j - 10));
-      stocks[i][j].scale.y = 1 + 0.2 * Math.sin(phi);
+      stocks[i][j].scale.y = map.height(i, j, t);
     }
   }
+  player.obj.position.x = player.i * 10 - 100;
+  player.obj.position.y = 3 + 10 * map.height(player.i, player.j, t);
+  player.obj.position.z = player.j * 10;
+  player.obj.rotation.y = 0.01 * t;
 	renderer.render(scene, camera);
 }
 animate();
@@ -111,16 +129,15 @@ function onWindowResize() {
 }
 window.addEventListener('resize', onWindowResize, false);
 
-const player = { x: 10, y: 10, money: 1000 };
 function onKeyDown(evt) {
   if (evt.key === 'ArrowLeft') {
-    player.x -= 1;
+    player.i -= 1;
   } else if (evt.key === 'ArrowRight') {
-    player.x += 1;
+    player.i += 1;
   } else if (evt.key === 'ArrowUp') {
-    player.y -= 1;
+    player.j -= 1;
   } else if (evt.key === 'ArrowDown') {
-    player.y += 1;
+    player.j += 1;
   }
 }
 document.addEventListener('keydown', onKeyDown, false);

@@ -114,9 +114,11 @@ function animate(timestamp) {
       stocks[i][j].scale.y = map.height(i, j, t);
     }
   }
-  player.obj.position.x = player.i * 10 - 100;
-  player.obj.position.y = 3 + 10 * map.height(player.i, player.j, t);
-  player.obj.position.z = player.j * 10;
+  const pt = new THREE.Vector3(
+    player.i * 10 - 100,
+    3 + 10 * map.height(player.i, player.j, t),
+    player.j * 10);
+  player.obj.position = player.obj.position.lerp(pt, 0.4);
   player.obj.rotation.y = 0.01 * t;
 	renderer.render(scene, camera);
 }

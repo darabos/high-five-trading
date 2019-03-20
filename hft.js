@@ -71,9 +71,9 @@ addSky();
 
 function addStocks() {
   const stocks = [];
-  for (let i = 0; i < 20; ++i) {
+  for (let i = 0; i < map.size[0]; ++i) {
     const row = [];
-    for (let j = 0; j < 20; ++j) {
+    for (let j = 0; j < map.size[1]; ++j) {
       const geo = new THREE.BoxGeometry(5, 20, 5);
       const mat = new THREE.MeshPhongMaterial( { color: 0x156289, emissive: 0x072534, flatShading: true } );
       const block = new THREE.Mesh(geo, mat);
@@ -86,7 +86,6 @@ function addStocks() {
   }
   return stocks;
 }
-const stocks = addStocks();
 
 function addPlayer() {
   const geo = new THREE.SphereGeometry(3, 4, 2);
@@ -95,14 +94,48 @@ function addPlayer() {
   scene.add(obj);
   return obj;
 }
-const player = { i: 10, j: 10, stocks: 1000, obj: addPlayer(), buyPrice: 1 };
 
-const map = {
-  height: function(i, j, t) {
-    const phi = 0.005 * t - 0.5 * Math.sqrt((i - 10) * (i - 10) + (j - 10) * (j - 10));
-    return 1 + 0.2 * Math.sin(phi);
+const sin = Math.sin;
+const sqrt = Math.sqrt;
+const floor = Math.floor;
+const min = Math.min;
+const maps = [
+  {
+    size: [2, 1],
+    startPos: [0, 0],
+    capital: [1000, 2000],
+    height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t))
   },
-};
+  {
+    size: [20, 20],
+    capital: [1000, 3000],
+    height: function(i, j, t) {
+      const phi = 0.005 * t - 0.5 * sqrt((i - 10) * (i - 10) + (j - 10) * (j - 10));
+      return 1 + 0.2 * sin(phi);
+    },
+  },
+]
+for (let i = 0; i < maps.length; ++i) {
+  maps[i].index = i;
+}
+let map;
+let stocks = [];
+const player = { obj: addPlayer() };
+
+function setMap(i) {
+  map = maps[i];
+  for (let row of stocks) {
+    for (let stock of row) {
+      scene.remove(stock);
+    }
+  }
+  stocks = addStocks();
+  player.i = map.startPos ? map.startPos[0] : floor(map.size[0] / 2);
+  player.j = map.startPos ? map.startPos[1] : floor(map.size[1] / 2);
+  player.stocks = map.capital[0]
+  player.buyPrice = 1;
+}
+setMap(0);
 
 function ij2vec(i, j) {
   return new THREE.Vector3(
@@ -117,8 +150,8 @@ function animate(timestamp) {
 	requestAnimationFrame(animate);
   if (startTime === undefined) { startTime = timestamp; }
   t = timestamp - startTime;
-  for (let i = 0; i < 20; ++i) {
-    for (let j = 0; j < 20; ++j) {
+  for (let i = 0; i < map.size[0]; ++i) {
+    for (let j = 0; j < map.size[1]; ++j) {
       stocks[i][j].scale.y = map.height(i, j, t);
     }
   }
@@ -132,7 +165,8 @@ function animate(timestamp) {
     e.update(t);
   }
 	renderer.render(scene, camera);
-  showCapital(Math.floor(player.stocks * map.height(player.i, player.j, t)));
+  player.capital = floor(player.stocks * map.height(player.i, player.j, t));
+  showCapital();
 }
 
 function onWindowResize() {
@@ -172,23 +206,28 @@ function onKeyDown(evt) {
     player.j -= 1;
   } else if (evt.key === 'ArrowDown') {
     player.j += 1;
+  } else if (evt.key === 'c' && map.capital[1] <= player.capital) {
+    setMap(map.index + 1);
   }
   if (i !== player.i || j !== player.j) {
     const h0 = map.height(i, j, t);
     addBoom(i, j, h0 - player.buyPrice);
     const h1 = map.height(player.i, player.j, t);
-    player.stocks = Math.max(1, Math.floor(h0 * player.stocks / h1));
+    player.stocks = Math.max(1, floor(h0 * player.stocks / h1));
     player.buyPrice = h1;
   }
 }
 document.addEventListener('keydown', onKeyDown, false);
 
 document.body.insertAdjacentHTML('beforeend', `
-<div style="border: 2px solid white; position: absolute; top: 10px; left: 10px; width: 50px; height: 300px;">
-  <div id="capital" style="background: white; position: absolute; bottom: 0; width: calc(100% - 10px); margin: 5px; height: 200px;">
+<div style="border: 2px solid white; position: absolute; top: 10px; left: 10px;
+            width: 50px; height: calc(100vh - 20px); box-sizing: border-box;">
+  <div id="capital" style="background: white; position: absolute; bottom: 0; width: calc(100% - 10px); margin: 5px;">
   </div>
 </div>`);
-function showCapital(c) {
-  document.getElementById('capital').style.height = 0.1 * c + 'px';
+function showCapital() {
+  const pct = min(100, 100 * player.capital / map.capital[1]);
+  document.getElementById('capital').style.height = `calc(${pct}% - 10px)`;
+  document.getElementById('capital').style.backgroundColor = pct === 100 ? '#00ff00' : 'white';
 }
 animate();

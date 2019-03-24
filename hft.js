@@ -103,8 +103,52 @@ const max = Math.max;
 const tanh = Math.tanh;
 const pow = Math.pow;
 const atan2 = Math.atan2;
+const rnd = Math.random;
 
 const maps = [
+  {
+    name: 'scribbles',
+    size: [20, 20],
+    capital: [1000, 3000],
+    height: function(i, j, t) {
+      return 1.1 + 0.5 * tanh(hf.u[i][j]);
+    },
+    px: 5, py: 5, nx: 15, ny: 15,
+    delay: 0,
+    update(dt) {
+      map.delay += dt;
+      while (map.delay > 10) {
+        map.delay -= 10;
+        if (rnd() < 0.25 && map.px < map.size[0] - 1) {
+          map.px += 1;
+        } else if (rnd() < 0.33 && map.px > 0) {
+          map.px -= 1;
+        } else if (rnd() < 0.5 && map.py < map.size[1] - 1) {
+          map.py += 1;
+        } else if (map.py > 0) {
+          map.py -= 1;
+        }
+        if (rnd() < 0.25 && map.nx < map.size[0] - 1) {
+          map.nx += 1;
+        } else if (rnd() < 0.33 && map.nx > 0) {
+          map.nx -= 1;
+        } else if (rnd() < 0.5 && map.ny < map.size[1] - 1) {
+          map.ny += 1;
+        } else if (map.ny > 0) {
+          map.ny -= 1;
+        }
+        hf.v[map.px][map.py] = 1;
+        hf.v[map.nx][map.ny] = -1;
+        for (let i = 0; i < map.size[0]; ++i) {
+          for (let j = 0; j < map.size[1]; ++j) {
+            hf.u[i][j] += hf.v[i][j] * 0.005 * dt;
+            hf.u[i][j] = max(-10, min(10, hf.u[i][j]));
+          }
+        }
+      }
+    },
+  },
+
   {
     name: 'fast 3-swirl',
     size: [20, 20],
@@ -116,6 +160,7 @@ const maps = [
       return sin(phi) + 1.1;
     },
   },
+
   {
     name: 'slow 2-swirl',
     size: [20, 20],
@@ -128,6 +173,7 @@ const maps = [
       return sin(phi) * attenuation + 1.1;
     },
   },
+
   {
     name: 'hf-test',
     size: [20, 20],
@@ -137,13 +183,17 @@ const maps = [
     },
     update(dt) { hf.update(dt); },
   },
+
   {
+    name: 'tutorial 1',
     size: [2, 1],
     startPos: [0, 0],
     capital: [1000, 2000],
     height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t))
   },
+
   {
+    name: 'sine ripples',
     size: [20, 20],
     capital: [1000, 3000],
     height: function(i, j, t) {
@@ -220,6 +270,7 @@ function setMap(index) {
   }
 }
 setMap(0);
+//setMap(maps.findIndex(m => m.name === 'sine ripples'));
 
 function ij2vec(i, j) {
   return new THREE.Vector3(

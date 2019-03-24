@@ -102,10 +102,34 @@ const min = Math.min;
 const max = Math.max;
 const tanh = Math.tanh;
 const pow = Math.pow;
+const atan2 = Math.atan2;
 
 const maps = [
   {
-    name: 'test',
+    name: 'fast 3-swirl',
+    size: [20, 20],
+    capital: [1000, 2000],
+    height: (i, j, t) => {
+      i -= 10; j -= 10;
+      const r = sqrt(i * i + j * j);
+      const phi = 3 * atan2(i, j) - t * 0.002 + 0.5 * r;
+      return sin(phi) + 1.1;
+    },
+  },
+  {
+    name: 'slow 2-swirl',
+    size: [20, 20],
+    capital: [1000, 2000],
+    height: (i, j, t) => {
+      i -= 10; j -= 10;
+      const r = sqrt(i * i + j * j);
+      const phi = 2 * atan2(i, j) - t * 0.001 + 0.5 * r;
+      const attenuation = pow(2, -0.02 * r * r);
+      return sin(phi) * attenuation + 1.1;
+    },
+  },
+  {
+    name: 'hf-test',
     size: [20, 20],
     capital: [1000, 3000],
     height: function(i, j, t) {
@@ -280,7 +304,7 @@ function onKeyDown(evt) {
     const h0 = map.height(i, j, t);
     addBoom(i, j, h0 - player.buyPrice);
     const h1 = map.height(player.i, player.j, t);
-    player.stocks = Math.max(1, floor(h0 * player.stocks / h1));
+    player.stocks = Math.max(10, floor(h0 * player.stocks / h1));
     player.buyPrice = h1;
   }
 }

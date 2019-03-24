@@ -362,14 +362,20 @@ function onKeyDown(evt) {
 document.addEventListener('keydown', onKeyDown, false);
 
 document.body.insertAdjacentHTML('beforeend', `
-<div style="border: 2px solid white; position: absolute; top: 10px; left: 10px;
-            width: 50px; height: calc(100vh - 20px); box-sizing: border-box;">
+<div id="capital-string" style="
+  position: absolute; top: 0; right: 15px;
+  padding: 10px 0; color: white;
+  font-family: sans-serif;"></div>
+<div style="border: 2px solid white; position: absolute; top: 40px; right: 10px;
+            width: 50px; height: calc(100vh - 50px); box-sizing: border-box;">
   <div id="capital" style="background: white; position: absolute; bottom: 0; width: calc(100% - 10px); margin: 5px;">
   </div>
 </div>`);
+const numberFormat = new Intl.NumberFormat('en-us');
 function showCapital() {
   const pct = min(100, 100 * player.capital / map.capital[1]);
   document.getElementById('capital').style.height = `calc(${pct}% - 10px)`;
   document.getElementById('capital').style.backgroundColor = pct === 100 ? '#00ff00' : 'white';
+  document.getElementById('capital-string').innerHTML = '$' + numberFormat.format((map.moneyScale || 1000) * player.capital);
 }
 animate();

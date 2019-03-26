@@ -378,4 +378,72 @@ function showCapital() {
   document.getElementById('capital').style.backgroundColor = pct === 100 ? '#00ff00' : 'white';
   document.getElementById('capital-string').innerHTML = '$' + numberFormat.format((map.moneyScale || 1000) * player.capital);
 }
+
+function talk(side, pic, text) {
+  let name = pic.split('-')[0];
+  name = name[0].toUpperCase() + name.slice(1);
+  const sign = side === 'L' ? '-' : '+';
+  const transform = side === 'L' ? 'rotate3d(5, 10, -2, 10deg)' : 'rotate3d(-5, 10, -2, -10deg)';
+  const talk = document.getElementById('talk');
+  if (talk) {
+    talk.style.left = `calc(50% ${sign} 30px)`;
+    talk.children[0].style.transform = transform;
+    const img = document.getElementById('talk-pic');
+    img.src = `pics/${pic}.png`;
+    img.style.float = side === 'L' ? 'left' : 'right';
+    document.getElementById('talk-text').innerHTML = `
+      <p><b>${name}:</b>
+      <p>${text}`;
+    return;
+  }
+  document.body.insertAdjacentHTML('beforeend', `
+  <div id="talk" style="transition: left 0.2s ease-out; position: absolute; bottom: 0; left: calc(50% ${sign} 30px); width: calc(50% - 100px);">
+    <div style="
+    transition: transform 0.2s ease-out;
+      position: relative; bottom: 15px; left: -50%; max-width: 500px;
+      padding: 20px; background: white; transform: ${transform};
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font-family: sans-serif; border-radius: 10px; display: flow-root;">
+      <img id="talk-pic" src="pics/${pic}.png" style="
+        float: ${side === 'L' ? 'left' : 'right'}; max-width: 30vw; max-height: 30vh; border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); margin-${side === 'L' ? 'right' : 'left'}: 10px;">
+      <style>p { margin: 5px; }</style>
+      <div id="talk-text">
+        <p><b>${name}:</b>
+        <p>${text}
+      </div>
+      <div onclick="advanceTalk()" style="    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    padding: 0 5px;
+    border-radius: 5px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}">...</div>
+    </div>
+  </div>`);
+}
+const script = [
+['L', 'mom-speak', "No."],
+['R', 'fiona-say', "But I can do it, Mom!"],
+['L', 'mom-speak', "No. Trading stocks is more dangerous than you realize, Fiona. You cannot just use the arrow keys to move your entire portfolio into another stock."],
+['R', 'fiona-shout', "Watch me!"],
+['L', 'mom-speak', "Stop right there. Our family has lost so much already!"],
+['L', 'mom-sad', "Stocks are volatile. If you move back to the cash position when the stock is lower than when you invested, you will lose money."],
+['R', 'fiona-embarrassed', "Oops. Let me try that again."],
+['R', 'fiona-smile-2', "I've got this, Mom! See the bar on the left side of the screen? I made us money."],
+];
+function preloadPics() {
+  for (let s of script) {
+    const i = new Image();
+    i.src = `pics/${s[1]}.png`;
+  }
+}
+preloadPics();
+
+let scriptIndex = -1;
+function advanceTalk() {
+  scriptIndex += 1;
+  talk(...script[scriptIndex]);
+}
+advanceTalk();
+
 animate();

@@ -338,6 +338,12 @@ function addBoom(i, j, gain) {
 
 function onKeyDown(evt) {
   const {i, j} = player;
+  if (talking) {
+    if (evt.key === ' ' || evt.key === 'Enter') {
+      advanceTalk();
+    }
+    return;
+  }
   if (evt.key === 'ArrowLeft' && player.i > 0) {
     player.i -= 1;
   } else if (evt.key === 'ArrowRight' && player.i < map.size[0] - 1) {
@@ -399,7 +405,7 @@ function talk(side, pic, text) {
   document.body.insertAdjacentHTML('beforeend', `
   <div id="talk" style="transition: left 0.2s ease-out; position: absolute; bottom: 0; left: calc(50% ${sign} 30px); width: calc(50% - 100px);">
     <div style="
-    transition: transform 0.2s ease-out;
+      transition: transform 0.2s ease-out;
       position: relative; bottom: 15px; left: -50%; max-width: 500px;
       padding: 20px; background: white; transform: ${transform};
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font-family: sans-serif; border-radius: 10px; display: flow-root;">
@@ -411,38 +417,66 @@ function talk(side, pic, text) {
         <p><b>${name}:</b>
         <p>${text}
       </div>
-      <div onclick="advanceTalk()" style="    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    padding: 0 5px;
-    border-radius: 5px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}">...</div>
+      <div onclick="advanceTalk()" style="
+        position: absolute;
+        bottom: 20px;
+        left: calc(50% - 50px);
+        width: 100px;
+        text-align: center;
+        border-radius: 5px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+      ">...</div>
     </div>
   </div>`);
 }
-const script = [
+
+const script = {
+  tutorial: [
 ['L', 'mom-speak', "No."],
 ['R', 'fiona-say', "But I can do it, Mom!"],
 ['L', 'mom-speak', "No. Trading stocks is more dangerous than you realize, Fiona. You cannot just use the arrow keys to move your entire portfolio into another stock."],
 ['R', 'fiona-shout', "Watch me!"],
+  ],
+  tutorialMovingBack: [
 ['L', 'mom-speak', "Stop right there. Our family has lost so much already!"],
 ['L', 'mom-sad', "Stocks are volatile. If you move back to the cash position when the stock is lower than when you invested, you will lose money."],
+  ],
+  tutorialOops: [
 ['R', 'fiona-embarrassed', "Oops. Let me try that again."],
+  ],
+  tutorialMoney: [
 ['R', 'fiona-smile-2', "I've got this, Mom! See the bar on the left side of the screen? I made us money."],
-];
+['L', 'mom-sad', "Your sister made us a lot of money too, you know."],
+['R', 'fiona-embarrassed', "Please don't make this about Dolores. I'll be careful. I'll stay safe."],
+['L', 'mom-speak', "Good. You just stick with this one privately traded stock. No need to enter the local stock exchange when you hit its capital requirement."],
+  ],
+  tutorialDone: [
+['L', 'mom-speak', "You now have enough capital to enter the local stock exchange. But it's better not to press C and rather stay here in safety. Indefinitely."],
+  ],
+};
 function preloadPics() {
-  for (let s of script) {
-    const i = new Image();
-    i.src = `pics/${s[1]}.png`;
+  for (let scene of Object.values(script)) {
+    for (let s of scene) {
+      const i = new Image();
+      i.src = `pics/${s[1]}.png`;
+    }
   }
 }
 preloadPics();
 
+let sceneName = 'tutorial';
 let scriptIndex = -1;
+let talking = false;
 function advanceTalk() {
   scriptIndex += 1;
-  talk(...script[scriptIndex]);
+  if (scriptIndex < script[sceneName].length) {
+    talk(...script[sceneName][scriptIndex]);
+    talking = true;
+  } else {
+    document.getElementById('talk').remove();
+    talking = false;
+  }
 }
 advanceTalk();
 

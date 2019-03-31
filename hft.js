@@ -104,6 +104,7 @@ const tanh = Math.tanh;
 const pow = Math.pow;
 const atan2 = Math.atan2;
 const rnd = Math.random;
+const dist = (i, j, x, y) => sqrt((i - x) * (i - x) + (j - y) * (j - y));
 
 const maps = {
   tutorial: {
@@ -113,6 +114,34 @@ const maps = {
     height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t)),
     onStart: () => runScene('tutorial'),
     onEnd: () => runScene('tutorialDone', () => setMap('sineRipples')),
+  },
+
+  sineRipples: {
+    size: [20, 20],
+    capital: [1000, 3000],
+    height: function(i, j, t) {
+      const phi = 0.005 * t - 0.5 * dist(i, j, 10, 10);
+      return 1 + 0.2 * sin(phi);
+    },
+    onStart: () => runScene('map2'),
+  },
+
+  checkerSine: {
+    size: [20, 20],
+    capital: [1000, 3000],
+    height: function(i, j, t) {
+      const scale = 0.9;
+      return 1 + 0.3 * sin(0.005 * t) * sin(10 + scale * i) * sin(10 + scale * j);
+    },
+  },
+
+  frequencies: {
+    size: [20, 20],
+    capital: [1000, 3000],
+    height: function(i, j, t) {
+      const mask = max(0.1, tanh(10 - dist(i, j, 10, 10)));
+      return mask * (1 + 0.3 * sin(0.0005 * t * (i + 10) + j));
+    },
   },
 
   scribbles: {
@@ -189,14 +218,6 @@ const maps = {
     update(dt) { hf.update(dt); },
   },
 
-  sineRipples: {
-    size: [20, 20],
-    capital: [1000, 3000],
-    height: function(i, j, t) {
-      const phi = 0.005 * t - 0.5 * sqrt((i - 10) * (i - 10) + (j - 10) * (j - 10));
-      return 1 + 0.2 * sin(phi);
-    },
-  },
 };
 
 const hf = {
@@ -452,7 +473,12 @@ const script = {
   tutorialDone: [
 ['L', 'mom-speak', "You now have enough capital to enter the local stock exchange. But it's better not to press C and rather stay here in safety. Indefinitely."],
   ],
+  map2: [
+['L', 'mom-speak', "Fiona. You know you can come home any time you feel in over your head."],
+['R', 'fiona-smile-2', "Thanks, Mom. I'll keep that in mind while I clear this little local market on the way to the national stock exchange."],
+  ],
 };
+
 function preloadPics() {
   for (let scene of Object.values(script)) {
     for (let s of scene) {
@@ -487,5 +513,5 @@ function runScene(scene, ending) {
   advanceTalk();
 }
 
-setMap('tutorial');
+setMap('frequencies');
 animate();

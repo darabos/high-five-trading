@@ -105,9 +105,17 @@ const pow = Math.pow;
 const atan2 = Math.atan2;
 const rnd = Math.random;
 
-const maps = [
-  {
-    name: 'scribbles',
+const maps = {
+  tutorial: {
+    size: [2, 1],
+    startPos: [0, 0],
+    capital: [1000, 2000],
+    height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t)),
+    onStart: () => runScene('tutorial'),
+    onEnd: () => runScene('tutorialDone', () => setMap('sineRipples')),
+  },
+
+  scribbles: {
     size: [20, 20],
     capital: [1000, 3000],
     height: function(i, j, t) {
@@ -149,8 +157,7 @@ const maps = [
     },
   },
 
-  {
-    name: 'fast 3-swirl',
+  fast3Swirl: {
     size: [20, 20],
     capital: [1000, 2000],
     height: (i, j, t) => {
@@ -161,8 +168,7 @@ const maps = [
     },
   },
 
-  {
-    name: 'slow 2-swirl',
+  slow2Swirl: {
     size: [20, 20],
     capital: [1000, 2000],
     height: (i, j, t) => {
@@ -174,8 +180,7 @@ const maps = [
     },
   },
 
-  {
-    name: 'hf-test',
+  hfTest: {
     size: [20, 20],
     capital: [1000, 3000],
     height: function(i, j, t) {
@@ -184,16 +189,7 @@ const maps = [
     update(dt) { hf.update(dt); },
   },
 
-  {
-    name: 'tutorial 1',
-    size: [2, 1],
-    startPos: [0, 0],
-    capital: [1000, 2000],
-    height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t))
-  },
-
-  {
-    name: 'sine ripples',
+  sineRipples: {
     size: [20, 20],
     capital: [1000, 3000],
     height: function(i, j, t) {
@@ -201,7 +197,7 @@ const maps = [
       return 1 + 0.2 * sin(phi);
     },
   },
-]
+};
 
 const hf = {
   get(i, j) {
@@ -243,8 +239,8 @@ let map;
 let stocks = [];
 const player = { obj: addPlayer() };
 
-function setMap(index) {
-  map = maps[index];
+function setMap(name) {
+  map = maps[name];
   for (let row of stocks) {
     for (let stock of row) {
       scene.remove(stock);
@@ -268,9 +264,11 @@ function setMap(index) {
     hf.u.push(u);
     hf.v.push(v);
   }
+
+  if (map.onStart) {
+    map.onStart();
+  }
 }
-setMap(0);
-//setMap(maps.findIndex(m => m.name === 'sine ripples'));
 
 function ij2vec(i, j) {
   return new THREE.Vector3(
@@ -302,8 +300,8 @@ function animate(timestamp) {
   }
   map.update && map.update(dt);
   // TODO: player weight?
-  // hf.u[player.i][player.j] = -10;
-  // hf.v[player.i][player.j] = 0;
+  //hf.u[player.i][player.j] = -10;
+  //hf.v[player.i][player.j] = -1;
 	renderer.render(scene, camera);
   player.capital = floor(player.stocks * map.height(player.i, player.j, t));
   showCapital();
@@ -353,7 +351,7 @@ function onKeyDown(evt) {
   } else if (evt.key === 'ArrowDown' && player.j < map.size[1] - 1) {
     player.j += 1;
   } else if (evt.key === 'c' && map.capital[1] <= player.capital) {
-    setMap(map.index + 1);
+    map.onEnd();
   } else if (evt.key === ' ') {
     hf.u[player.i][player.j] = -10;
   }
@@ -415,7 +413,7 @@ function talk(side, pic, text) {
       <style>p { margin: 5px; }</style>
       <div id="talk-text">
         <p><b>${name}:</b>
-        <p>${text}
+        <p style="white-space: pre-wrap;">${text}
       </div>
       <div onclick="advanceTalk()" style="
         position: absolute;
@@ -433,7 +431,7 @@ function talk(side, pic, text) {
 
 const script = {
   tutorial: [
-['L', 'mom-speak', "No."],
+['L', 'mom-speak', "No.\n\n(Press Space or Enter to continue.)"],
 ['R', 'fiona-say', "But I can do it, Mom!"],
 ['L', 'mom-speak', "No. Trading stocks is more dangerous than you realize, Fiona. You cannot just use the arrow keys to move your entire portfolio into another stock."],
 ['R', 'fiona-shout', "Watch me!"],
@@ -465,19 +463,29 @@ function preloadPics() {
 }
 preloadPics();
 
-let sceneName = 'tutorial';
-let scriptIndex = -1;
+let scriptScene;
+let scriptIndex;
+let scriptEnding;
 let talking = false;
 function advanceTalk() {
   scriptIndex += 1;
-  if (scriptIndex < script[sceneName].length) {
-    talk(...script[sceneName][scriptIndex]);
+  if (scriptIndex < script[scriptScene].length) {
+    talk(...script[scriptScene][scriptIndex]);
     talking = true;
   } else {
     document.getElementById('talk').remove();
     talking = false;
+    if (scriptEnding) {
+      scriptEnding();
+    }
   }
 }
-advanceTalk();
+function runScene(scene, ending) {
+  scriptScene = scene;
+  scriptIndex = -1;
+  scriptEnding = ending;
+  advanceTalk();
+}
 
+setMap('tutorial');
 animate();

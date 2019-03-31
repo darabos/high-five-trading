@@ -96,6 +96,7 @@ function addPlayer() {
 }
 
 const sin = Math.sin;
+const cos = Math.cos;
 const sqrt = Math.sqrt;
 const floor = Math.floor;
 const min = Math.min;
@@ -106,6 +107,10 @@ const atan2 = Math.atan2;
 const rnd = Math.random;
 const dist2 = (i, j, x, y) => (i - x) * (i - x) + (j - y) * (j - y);
 const dist = (i, j, x, y) => sqrt(dist2(i, j, x, y));
+const normdir = (a, b) => {
+  const d = max(0.01, dist(a.i, a.j, b.i, b.j));
+  return { d, i: (b.i - a.i) / d, j: (b.j - a.j) / d };
+};
 
 const maps = {
   tutorial: {
@@ -207,6 +212,47 @@ const maps = {
       const phi = 2 * atan2(i, j) - t * 0.001 + 0.5 * r;
       const attenuation = pow(2, -0.02 * r * r);
       return sin(phi) * attenuation + 1.1;
+    },
+  },
+
+  sharks: {
+    size: [20, 20],
+    capital: [1000, 3000],
+    sharks: [],
+    update(dt) {
+      while (map.sharks.length < 3) {
+        map.sharks.push({ i: rnd() * 20, j: rnd() * 20 });
+      }
+      for (let shark of map.sharks) {
+        if (!shark.oi) { shark.oi = shark.i; shark.oj = shark.j; }
+        const pdir = normdir(shark, player);
+        let fi = 0.0001 * pdir.i;
+        let fj = 0.0001 * pdir.j;
+        for (let s2 of map.sharks) {
+          if (s2 !== shark) {
+            const sdir = normdir(shark, s2);
+            fi -= 0.0001 * sdir.i / sdir.d;
+            fj -= 0.0001 * sdir.j / sdir.d;
+          }
+        }
+        const oi = shark.i; const oj = shark.j;
+        const drag = pow(0.9998, dt);
+        shark.i += dt * fi + drag * (shark.i - shark.oi);
+        shark.j += dt * fj + drag * (shark.j - shark.oj);
+        shark.oi = oi; shark.oj = oj;
+      }
+    },
+    height: function(i, j, t) {
+      function sharkShape(i, j) {
+        return cos(0.3 * sqrt(i * i + j * j));
+      }
+      let h = 0.1;
+      for (let shark of map.sharks) {
+        if (floor(shark.i) === i && floor(shark.j) === j) {
+          h += 1;
+        }
+      }
+      return h + 1.1 + sharkShape(i - 10, j - 10);
     },
   },
 
@@ -513,5 +559,5 @@ function runScene(scene, ending) {
   advanceTalk();
 }
 
-setMap('frequencies');
+setMap('sharks');
 animate();

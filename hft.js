@@ -220,39 +220,39 @@ const maps = {
     capital: [1000, 3000],
     sharks: [],
     update(dt) {
-      while (map.sharks.length < 3) {
-        map.sharks.push({ i: rnd() * 20, j: rnd() * 20 });
+      while (map.sharks.length < 2) {
+        map.sharks.push({ i: rnd() * 20, j: rnd() * 20, vi: rnd(), vj: rnd() });
       }
       for (let shark of map.sharks) {
-        if (!shark.oi) { shark.oi = shark.i; shark.oj = shark.j; }
         const pdir = normdir(shark, player);
-        let fi = 0.0001 * pdir.i;
-        let fj = 0.0001 * pdir.j;
+        let fi = 0.002 * pdir.i;
+        let fj = 0.002 * pdir.j;
         for (let s2 of map.sharks) {
           if (s2 !== shark) {
             const sdir = normdir(shark, s2);
-            fi -= 0.0001 * sdir.i / sdir.d;
-            fj -= 0.0001 * sdir.j / sdir.d;
+            fi -= 0.001 * sdir.i / sdir.d;
+            fj -= 0.001 * sdir.j / sdir.d;
           }
         }
-        const oi = shark.i; const oj = shark.j;
-        const drag = pow(0.9998, dt);
-        shark.i += dt * fi + drag * (shark.i - shark.oi);
-        shark.j += dt * fj + drag * (shark.j - shark.oj);
-        shark.oi = oi; shark.oj = oj;
+        shark.vi += dt * fi;
+        shark.vj += dt * fj;
+        const v = sqrt(shark.vi * shark.vi + shark.vj * shark.vj);
+        if (v) { shark.vi /= v; shark.vj /= v; }
+        shark.i += 0.005 * dt * shark.vi;
+        shark.j += 0.005 * dt * shark.vj;
       }
     },
     height: function(i, j, t) {
       function sharkShape(i, j) {
-        return cos(0.3 * sqrt(i * i + j * j));
+        if (i > 0) { i *= 4; }
+        return pow(1.1, -(i * i + 10 * j * j));
       }
       let h = 0.1;
-      for (let shark of map.sharks) {
-        if (floor(shark.i) === i && floor(shark.j) === j) {
-          h += 1;
-        }
+      for (let s of map.sharks) {
+        const di = s.i - i; const dj = s.j - j;
+        h += sharkShape(di * s.vi + dj * s.vj, dj * s.vi - di * s.vj);
       }
-      return h + 1.1 + sharkShape(i - 10, j - 10);
+      return h;
     },
   },
 

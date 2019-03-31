@@ -104,7 +104,8 @@ const tanh = Math.tanh;
 const pow = Math.pow;
 const atan2 = Math.atan2;
 const rnd = Math.random;
-const dist = (i, j, x, y) => sqrt((i - x) * (i - x) + (j - y) * (j - y));
+const dist2 = (i, j, x, y) => (i - x) * (i - x) + (j - y) * (j - y);
+const dist = (i, j, x, y) => sqrt(dist2(i, j, x, y));
 
 const maps = {
   tutorial: {
@@ -417,8 +418,8 @@ function talk(side, pic, text) {
     img.src = `pics/${pic}.png`;
     img.style.float = side === 'L' ? 'left' : 'right';
     document.getElementById('talk-text').innerHTML = `
-      <p><b>${name}:</b>
-      <p>${text}`;
+      <p><b>${name}:</b></p>
+      <p>${text}</p>`;
     return;
   }
   document.body.insertAdjacentHTML('beforeend', `
@@ -426,21 +427,20 @@ function talk(side, pic, text) {
     <div style="
       transition: transform 0.2s ease-out;
       position: relative; bottom: 15px; left: -50%; max-width: 500px;
-      padding: 20px; background: white; transform: ${transform};
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font-family: sans-serif; border-radius: 10px; display: flow-root;">
+      padding: 20px; background: white; transform: ${transform}; flex-direction: row;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font-family: sans-serif; border-radius: 10px; display: flex;">
       <img id="talk-pic" src="pics/${pic}.png" style="
         float: ${side === 'L' ? 'left' : 'right'}; max-width: 30vw; max-height: 30vh; border-radius: 10px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); margin-${side === 'L' ? 'right' : 'left'}: 10px;">
+      <div style="display: flex; flex-direction: column; flex: 1;">
       <style>p { margin: 5px; }</style>
-      <div id="talk-text">
-        <p><b>${name}:</b>
-        <p style="white-space: pre-wrap;">${text}
+      <div id="talk-text" style="flex: 1;">
+        <p><b>${name}:</b></p>
+        <p style="white-space: pre-wrap;">${text}</p>
       </div>
       <div onclick="advanceTalk()" style="
-        position: absolute;
-        bottom: 20px;
-        left: calc(50% - 50px);
         width: 100px;
+        align-self: center;
         text-align: center;
         border-radius: 5px;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);

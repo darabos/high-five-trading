@@ -1,16 +1,27 @@
-
+function v3(x, y, z) { return new THREE.Vector3(x, y, z); }
 const scene = new THREE.Scene();
 scene.background = new THREE.Color().setHSL(0.6, 0, 1);
 scene.fog = new THREE.Fog(scene.background, 1, 3000);
 
 const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
-camera.position.set(10, 80, 300);
-camera.lookAt(0, 0, 100);
+camera.position.set(-90, 300, 300);
+camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
+function setupComposer() {
+  renderer.toneMappingExposure = Math.pow(0.9, 4.0);
+  const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.5, 0.5);
+  const composer = new THREE.EffectComposer(renderer);
+  composer.setSize(window.innerWidth, window.innerHeight);
+  composer.addPass(new THREE.RenderPass(scene, camera));
+  composer.addPass(bloomPass);
+  return composer;
+}
+const composer = setupComposer();
 
 function addLight(x, y, z) {
   const l = new THREE.PointLight(0xffffff, 1, 0);
@@ -77,8 +88,8 @@ function addStocks() {
       const geo = new THREE.BoxGeometry(5, 20, 5);
       const mat = new THREE.MeshPhongMaterial( { color: 0x156289, emissive: 0x072534, flatShading: true } );
       const block = new THREE.Mesh(geo, mat);
-      block.position.x = -100 + i * 10;
-      block.position.z = j * 10;
+      block.position.x = i * 10 - 5 * map.size[0];
+      block.position.z = j * 10 - 5 * map.size[1];
       scene.add(block);
       row.push(block);
     }
@@ -89,7 +100,7 @@ function addStocks() {
 
 function addPlayer() {
   const geo = new THREE.SphereGeometry(3, 4, 2);
-  const mat = new THREE.MeshPhongMaterial( { color: 0x896215, emissive: 0x342507, flatShading: true } );
+  const mat = new THREE.MeshPhongMaterial( { color: 0x896215, emissive: 0x896215, flatShading: true } );
   const obj = new THREE.Mesh(geo, mat);
   scene.add(obj);
   return obj;
@@ -117,6 +128,7 @@ const maps = {
     size: [2, 1],
     startPos: [0, 0],
     capital: [1000, 2000],
+    cameraPos: v3(10, 25, 100),
     height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t)),
     onStart: () => runScene('tutorial'),
     onEnd: () => runScene('tutorialDone', () => setMap('sineRipples')),
@@ -125,6 +137,7 @@ const maps = {
   sineRipples: {
     size: [20, 20],
     capital: [1000, 3000],
+    cameraPos: v3(10, 80, 200),
     height: function(i, j, t) {
       const phi = 0.005 * t - 0.5 * dist(i, j, 10, 10);
       return 1 + 0.2 * sin(phi);
@@ -244,6 +257,7 @@ const maps = {
     },
     height: function(i, j, t) {
       function sharkShape(i, j) {
+        i -= 3;
         if (i > 0) { i *= 4; }
         return pow(1.1, -(i * i + 10 * j * j));
       }
@@ -339,10 +353,10 @@ function setMap(name) {
 }
 
 function ij2vec(i, j) {
-  return new THREE.Vector3(
-    i * 10 - 100,
+  return v3(
+    i * 10 - 5 * map.size[0],
     3 + 10 * map.height(i, j, t),
-    j * 10);
+    j * 10 - 5 * map.size[1]);
 }
 
 let startTime;
@@ -358,10 +372,14 @@ function animate(timestamp) {
     }
   }
   const pt = ij2vec(player.i, player.j);
-  player.obj.position.lerp(pt, 0.2);
+  player.obj.position.lerp(pt, 1 - pow(0.995, dt));
   pt.y += 10;
   player.obj.lookAt(pt);
   player.obj.rotation.z = 0.01 * t;
+  if (map.cameraPos) {
+    camera.position.lerp(map.cameraPos, 1 - pow(0.999, dt));
+    camera.lookAt(0, 0, 0);
+  }
 
   for (let e of effects) {
     e.update(t);
@@ -370,7 +388,7 @@ function animate(timestamp) {
   // TODO: player weight?
   //hf.u[player.i][player.j] = -10;
   //hf.v[player.i][player.j] = -1;
-	renderer.render(scene, camera);
+	composer.render(scene, camera);
   player.capital = floor(player.stocks * map.height(player.i, player.j, t));
   showCapital();
 }

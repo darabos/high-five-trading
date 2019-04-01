@@ -350,7 +350,7 @@ let t;
 function animate(timestamp) {
 	requestAnimationFrame(animate);
   if (startTime === undefined) { startTime = timestamp; }
-  const dt = timestamp - startTime - t || 0;
+  const dt = min(100, timestamp - startTime - t || 0);
   t = timestamp - startTime;
   for (let i = 0; i < map.size[0]; ++i) {
     for (let j = 0; j < map.size[1]; ++j) {
@@ -460,6 +460,7 @@ function talk(side, pic, text) {
   if (talk) {
     talk.style.left = `calc(50% ${sign} 30px)`;
     talk.children[0].style.transform = transform;
+    talk.children[0].style.flexDirection = side === 'L' ? 'row' : 'row-reverse';
     const img = document.getElementById('talk-pic');
     img.src = `pics/${pic}.png`;
     img.style.float = side === 'L' ? 'left' : 'right';
@@ -473,7 +474,7 @@ function talk(side, pic, text) {
     <div style="
       transition: transform 0.2s ease-out;
       position: relative; bottom: 15px; left: -50%; max-width: 500px;
-      padding: 20px; background: white; transform: ${transform}; flex-direction: row;
+      padding: 20px; background: white; transform: ${transform}; flex-direction: {side === 'L' ? 'row' : 'row-reverse'};
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font-family: sans-serif; border-radius: 10px; display: flex;">
       <img id="talk-pic" src="pics/${pic}.png" style="
         float: ${side === 'L' ? 'left' : 'right'}; max-width: 30vw; max-height: 30vh; border-radius: 10px;
@@ -498,7 +499,7 @@ function talk(side, pic, text) {
 
 const script = {
   tutorial: [
-['L', 'mom-speak', "No.\n\n(Press Space or Enter to continue.)"],
+['L', 'mom-speak', "No.\n\n<small>(Press Space or Enter to continue.)</small>"],
 ['R', 'fiona-say', "But I can do it, Mom!"],
 ['L', 'mom-speak', "No. Trading stocks is more dangerous than you realize, Fiona. You cannot just use the arrow keys to move your entire portfolio into another stock."],
 ['R', 'fiona-shout', "Watch me!"],
@@ -559,5 +560,5 @@ function runScene(scene, ending) {
   advanceTalk();
 }
 
-setMap('sharks');
+setMap('tutorial');
 animate();

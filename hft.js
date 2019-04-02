@@ -123,6 +123,14 @@ const normdir = (a, b) => {
   return { d, i: (b.i - a.i) / d, j: (b.j - a.j) / d };
 };
 
+const music = {
+  // Cowboy Glitch (borja vs. go1dfish) by spinningmerkaba (c) copyright 2011 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/33623 Ft: borja, go1dfish
+  cowboy: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Cowboy_Glitch_(borja_vs._go1dfish).mp3',
+  // 260809 Funky Nurykabe by spinningmerkaba (c) copyright 2010 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/29186
+  funky: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_260809_Funky_Nurykabe.mp3',
+
+};
+
 const maps = {
   tutorial: {
     size: [2, 1],
@@ -132,6 +140,7 @@ const maps = {
     height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t)),
     onStart: () => runScene('tutorial'),
     onEnd: () => runScene('tutorialDone', () => setMap('sineRipples')),
+    music: music.cowboy,
   },
 
   sineRipples: {
@@ -143,6 +152,7 @@ const maps = {
       return 1 + 0.2 * sin(phi);
     },
     onStart: () => runScene('map2'),
+    music: music.funky,
   },
 
   checkerSine: {
@@ -923,6 +933,17 @@ const script = {
 
 };
 
+function playMusic() {
+  new Howl({
+    src: map.music || 'silence30.mp3',
+    autoplay: true,
+    loop: true,
+    volume: 0.5,
+    onend: () => playMusic(),
+  });
+}
+
 preloadPics();
-setMap('fast3Swirl');
+setMap('tutorial');
+playMusic();
 animate();

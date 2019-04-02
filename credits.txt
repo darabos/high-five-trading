@@ -1,0 +1,45 @@
+StyleGAN
+@gwern (model)
+@halcy (notebook)
+2019-02-18-stylegan-faces-network-02041-011095.pk
+https://www.gwern.net/Faces
+
+three.js: @mrdoob, Ricardo Cabello
+howler.js: @GoldFireStudios, James Simpson
+
+music:
+@spinningmerkaba
+
+country
+http://dig.ccmixter.org/files/tobias_weber/58253
+http://dig.ccmixter.org/files/jlbrock44/33623
+
+james bond
+http://dig.ccmixter.org/files/jlbrock44/29186
+
+uplifting
+http://dig.ccmixter.org/files/destinazione_altrove/49997
+http://dig.ccmixter.org/files/jlbrock44/33345
+
+ambient
+http://dig.ccmixter.org/files/airtone/56883
+http://dig.ccmixter.org/files/SiobhanD/57378
+http://dig.ccmixter.org/files/SiobhanD/55641
+http://dig.ccmixter.org/files/reusenoise/58687
+http://dig.ccmixter.org/files/jlbrock44/55086
+http://dig.ccmixter.org/files/jlbrock44/53778
+
+kicking ass
+http://dig.ccmixter.org/files/JeffSpeed68/58628
+
+electronic
+http://dig.ccmixter.org/files/jlbrock44/56531
+http://dig.ccmixter.org/files/fluffy/53739
+http://dig.ccmixter.org/files/jlbrock44/53256
+
+cat pics:
+George Hodan, https://www.publicdomainpictures.net/en/browse-author.php?hleda=cat&seradit=date&a=8245
+
+sounds:
+@KenneyNL
+https://kenney.nl/assets/digital-audio

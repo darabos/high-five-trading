@@ -351,12 +351,15 @@ function setMap(name) {
   if (map.onStart) {
     map.onStart();
   }
+  player.lookAt = ij2vec(player.i, player.j);
+  player.obj.position.copy(player.lookAt);
+  player.lookAt.y += 10;
 }
 
 function ij2vec(i, j) {
   return v3(
     i * 10 - 5 * map.size[0],
-    3 + 10 * map.height(i, j, t),
+    4 + 10 * map.height(i, j, t),
     j * 10 - 5 * map.size[1]);
 }
 
@@ -375,7 +378,8 @@ function animate(timestamp) {
   const pt = ij2vec(player.i, player.j);
   player.obj.position.lerp(pt, 1 - pow(0.995, dt));
   pt.y += 10;
-  player.obj.lookAt(pt);
+  player.lookAt.lerp(pt, 1 - pow(0.99, dt));
+  player.obj.lookAt(player.lookAt);
   player.obj.rotation.z = 0.01 * t;
   if (map.cameraPos) {
     camera.position.lerp(map.cameraPos, 1 - pow(0.999, dt));
@@ -386,6 +390,7 @@ function animate(timestamp) {
     e.update(t);
   }
   map.update && map.update(dt);
+  handleKeys(dt);
   // TODO: player weight?
   //hf.u[player.i][player.j] = -10;
   //hf.v[player.i][player.j] = -1;
@@ -398,6 +403,7 @@ function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
 }
 window.addEventListener('resize', onWindowResize, false);
 
@@ -421,27 +427,46 @@ function addBoom(i, j, gain) {
   };
 }
 
+const keys = {};
 function onKeyDown(evt) {
-  const {i, j} = player;
   if (talking) {
     if (evt.key === ' ' || evt.key === 'Enter') {
       advanceTalk();
     }
     return;
   }
-  if (evt.key === 'ArrowLeft' && player.i > 0) {
-    player.i -= 1;
-  } else if (evt.key === 'ArrowRight' && player.i < map.size[0] - 1) {
-    player.i += 1;
-  } else if (evt.key === 'ArrowUp' && player.j > 0) {
-    player.j -= 1;
-  } else if (evt.key === 'ArrowDown' && player.j < map.size[1] - 1) {
-    player.j += 1;
-  } else if (evt.key === 'c' && map.capital[1] <= player.capital) {
+  if (evt.key === 'ArrowLeft') { keys.left = true; }
+  else if (evt.key === 'ArrowRight') { keys.right = true; }
+  else if (evt.key === 'ArrowUp') { keys.up = true; }
+  else if (evt.key === 'ArrowDown') { keys.down = true; }
+  else if (evt.key === 'c' && map.capital[1] <= player.capital) {
     map.onEnd();
   } else if (evt.key === ' ') {
     hf.u[player.i][player.j] = -10;
   }
+}
+function onKeyUp(evt) {
+  if (evt.key === 'ArrowLeft') { keys.left = false; }
+  else if (evt.key === 'ArrowRight') { keys.right = false; }
+  else if (evt.key === 'ArrowUp') { keys.up = false; }
+  else if (evt.key === 'ArrowDown') { keys.down = false; }
+}
+document.addEventListener('keydown', onKeyDown, false);
+document.addEventListener('keyup', onKeyUp, false);
+
+let keyBattery = 0;
+function handleKeys(dt) {
+  const speed = 150;
+  keyBattery = min(speed + dt, keyBattery + dt);
+  if (keyBattery < speed) { return; }
+  if (talking) { return; }
+  if (!keys.left && !keys.right && !keys.up && !keys.down) { return; }
+  const {i, j} = player;
+  keyBattery -= speed;
+  if (keys.left && player.i > 0) { player.i -= 1; }
+  if (keys.right && player.i < map.size[0] - 1) { player.i += 1; }
+  if (keys.up && player.j > 0) { player.j -= 1; }
+  if (keys.down && player.j < map.size[1] - 1) { player.j += 1; }
   if (i !== player.i || j !== player.j) {
     const h0 = map.height(i, j, t);
     addBoom(i, j, h0 - player.buyPrice);
@@ -450,7 +475,6 @@ function onKeyDown(evt) {
     player.buyPrice = h1;
   }
 }
-document.addEventListener('keydown', onKeyDown, false);
 
 document.body.insertAdjacentHTML('beforeend', `
 <div id="capital-string" style="
@@ -549,11 +573,9 @@ function runScene(scene, ending) {
   advanceTalk();
 }
 function preloadPics() {
-  const pics = [];
   for (let scene of Object.values(script)) {
     for (let s of scene) {
       if (!s[1]) { continue; }
-      if (!pics.includes(s[1])) { pics.push(s[1]); }
       const i = new Image();
       if (s[1].includes('.')) {
         i.src = `pics/${s[1]}`;
@@ -562,8 +584,6 @@ function preloadPics() {
       }
     }
   }
-  pics.sort();
-  console.log(pics);
 }
 
 const script = {
@@ -904,5 +924,5 @@ const script = {
 };
 
 preloadPics();
-setMap('sharks');
+setMap('fast3Swirl');
 animate();

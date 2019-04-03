@@ -43,3 +43,7 @@ George Hodan, https://www.publicdomainpictures.net/en/browse-author.php?hleda=ca
 sounds:
 @KenneyNL
 https://kenney.nl/assets/digital-audio
+
+Fonts:
+https://fonts.google.com/specimen/Fascinate by Astigmatic
+https://fonts.google.com/specimen/Audiowide by Astigmatic

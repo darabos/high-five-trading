@@ -132,6 +132,31 @@ const music = {
 };
 
 const maps = {
+
+  demo: {
+    size: [30, 30],
+    capital: [1000, 2000],
+    height: (i, j, t) => {
+      i -= 15; j -= 15;
+      const r = sqrt(i * i + j * j);
+      const phi = 3 * atan2(i, j) - t * 0.002 + 0.5 * r;
+      return sin(phi) + 1.1;
+    },
+    music: music.cowboy,
+    cameraPos: v3(10, 30, 150),
+    update(dt) {
+      map.cameraPos.applyAxisAngle(v3(0, 1, 0), 0.001 * dt);
+    },
+    onStart() {
+      document.getElementById('capital-group').style.display = 'none';
+      document.getElementById('menu-group').style.display = 'flex';
+    },
+    onEnd() {
+      document.getElementById('capital-group').style.display = '';
+      document.getElementById('menu-group').style.display = 'none';
+    },
+  },
+
   tutorial: {
     size: [2, 1],
     startPos: [0, 0],
@@ -404,7 +429,11 @@ function animate(timestamp) {
   // TODO: player weight?
   //hf.u[player.i][player.j] = -10;
   //hf.v[player.i][player.j] = -1;
-	composer.render(scene, camera);
+  if (options.bloom) {
+    composer.render(scene, camera);
+  } else {
+    renderer.render(scene, camera);
+  }
   player.capital = floor(player.stocks * map.height(player.i, player.j, t));
   showCapital();
 }
@@ -487,13 +516,15 @@ function handleKeys(dt) {
 }
 
 document.body.insertAdjacentHTML('beforeend', `
-<div id="capital-string" style="
-  position: absolute; top: 0; right: 15px;
-  padding: 10px 0; color: white;
-  font-family: sans-serif;"></div>
-<div style="border: 2px solid white; position: absolute; top: 40px; right: 10px;
-            width: 50px; height: calc(100vh - 50px); box-sizing: border-box;">
-  <div id="capital" style="background: white; position: absolute; bottom: 0; width: calc(100% - 10px); margin: 5px;">
+<div id="capital-group">
+  <div id="capital-string" style="
+    position: absolute; top: 0; right: 15px;
+    padding: 10px 0; color: white;
+    font: 20px monospace;"></div>
+  <div style="border: 2px solid white; position: absolute; top: 40px; right: 10px;
+              width: 50px; height: calc(100vh - 50px); box-sizing: border-box;">
+    <div id="capital" style="background: white; position: absolute; bottom: 0; width: calc(100% - 10px); margin: 5px;">
+    </div>
   </div>
 </div>`);
 const numberFormat = new Intl.NumberFormat('en-us');
@@ -502,6 +533,41 @@ function showCapital() {
   document.getElementById('capital').style.height = `calc(${pct}% - 10px)`;
   document.getElementById('capital').style.backgroundColor = pct === 100 ? '#00ff00' : 'white';
   document.getElementById('capital-string').innerHTML = '$' + numberFormat.format((map.moneyScale || 1000) * player.capital);
+}
+
+const options = {
+  bloom: true,
+  sound: true,
+};
+document.body.insertAdjacentHTML('beforeend', `
+<link href="https://fonts.googleapis.com/css?family=Audiowide" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Fascinate" rel="stylesheet">
+<div id="menu-group" style="
+  position: absolute; top: 0; width: 100vw; height: 100vh;
+  display: none; flex-direction: column; justify-content: center; text-align: center; align-items: center;
+  color: white; text-shadow: 0 0 5px black;">
+  <div style="
+    margin: 30px; font: 80px Fascinate, sans-serif;">High Five Trading</div>
+  <div id="menu" style="display: inline-block; font: 30px Audiowide, sans-serif;">
+    <style>#menu div { cursor: pointer; margin: 5px; } #menu div:hover { color: #fff249; }</style>
+    <div onclick="continueGame()">Continue</div>
+    <div onclick="newGame()">New game</div>
+    <div>☑ Sound</div>
+    <div onclick="toggleBloom(this)">☑ Bloom</div>
+    <div>Credits</div>
+  </div>
+</div>`);
+function continueGame() {
+  map.onEnd();
+  setMap('tutorial');
+}
+function newGame() {
+  map.onEnd();
+  setMap('tutorial');
+}
+function toggleBloom(div) {
+  options.bloom = !options.bloom;
+  div.innerHTML = options.bloom ? '☑ Bloom' : '☐ Bloom';
 }
 
 function talk(side, pic, text) {
@@ -944,6 +1010,6 @@ function playMusic() {
 }
 
 preloadPics();
-setMap('tutorial');
+setMap('demo');
 playMusic();
 animate();

@@ -480,15 +480,14 @@ function onKeyDown(evt) {
   else if (evt.key === 'ArrowDown') { keys.down = true; }
   else if (evt.key === 'c' && map.capital[1] <= player.capital) {
     map.onEnd();
-  } else if (evt.key === ' ') {
-    hf.u[player.i][player.j] = -10;
-  }
+  } else if (evt.key === ' ') { keys.space = true; }
 }
 function onKeyUp(evt) {
   if (evt.key === 'ArrowLeft') { keys.left = false; }
   else if (evt.key === 'ArrowRight') { keys.right = false; }
   else if (evt.key === 'ArrowUp') { keys.up = false; }
   else if (evt.key === 'ArrowDown') { keys.down = false; }
+  else if (evt.key === ' ') { keys.space = false; }
 }
 document.addEventListener('keydown', onKeyDown, false);
 document.addEventListener('keyup', onKeyUp, false);
@@ -497,8 +496,11 @@ let keyBattery = 0;
 function handleKeys(dt) {
   const speed = 150;
   keyBattery = min(speed + dt, keyBattery + dt);
-  if (keyBattery < speed) { return; }
   if (talking) { return; }
+  if (keys.space) {
+    hf.u[player.i][player.j] = -10;
+  }
+  if (keyBattery < speed) { return; }
   if (!keys.left && !keys.right && !keys.up && !keys.down) { return; }
   const {i, j} = player;
   keyBattery -= speed;
@@ -514,6 +516,58 @@ function handleKeys(dt) {
     player.buyPrice = h1;
   }
 }
+
+renderer.domElement.addEventListener('touchstart', onTouchStart, false);
+renderer.domElement.addEventListener('touchmove', onTouchMove, false);
+renderer.domElement.addEventListener('touchend', onTouchEnd, false);
+const touch = { count: 0 };
+
+function onTouchStart(e) {
+  e.preventDefault();
+  for (let t of e.changedTouches) {
+    touch.count += 1;
+    if (touch.count === 1) {
+      touch.baseX = t.pageX;
+      touch.baseY = t.pageY;
+      touch.moveId = t.identifier;
+    } else if (touch.count === 2) {
+      keys.space = true;
+      touch.spaceId = t.identifier;
+    }
+  }
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  for (let t of e.changedTouches) {
+    if (t.identifier === touch.moveId) {
+      const dx = t.pageX - touch.baseX;
+      const dy = t.pageY - touch.baseY;
+      keys.up = dy < -10;
+      keys.down = 10 < dy;
+      keys.left = dx < -10;
+      keys.right = 10 < dx;
+    }
+  }
+}
+
+function onTouchEnd(e) {
+  e.preventDefault();
+  for (let t of e.changedTouches) {
+    touch.count -= 1;
+    if (t.identifier === touch.spaceId) {
+      touch.spaceId = undefined;
+      keys.space = false;
+    } else if (t.identifier === touch.moveId) {
+      touch.moveId = undefined;
+      keys.left = false;
+      keys.right = false;
+      keys.up = false;
+      keys.down = false;
+    }
+  }
+}
+
 
 document.body.insertAdjacentHTML('beforeend', `
 <div id="capital-group">
@@ -540,8 +594,6 @@ const options = {
   sound: true,
 };
 document.body.insertAdjacentHTML('beforeend', `
-<link href="https://fonts.googleapis.com/css?family=Audiowide" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css?family=Fascinate" rel="stylesheet">
 <div id="menu-group" style="
   position: absolute; top: 0; width: 100vw; height: 100vh;
   display: none; flex-direction: column; justify-content: center; text-align: center; align-items: center;
@@ -605,7 +657,7 @@ function talk(side, pic, text) {
       padding: 20px; background: white; transform: ${transform}; flex-direction: ${side === 'L' ? 'row' : 'row-reverse'};
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font-family: sans-serif; border-radius: 10px; display: flex;">
       <img id="talk-pic" src="pics/${pic}" style="
-        max-width: 30vw; max-height: 30vh; border-radius: 10px;
+        max-width: 256px; max-height: 256px; border-radius: 10px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); margin-${side === 'L' ? 'right' : 'left'}: 10px;">
       <div style="display: flex; flex-direction: column; flex: 1;">
       <style>p { margin: 10px; }</style>

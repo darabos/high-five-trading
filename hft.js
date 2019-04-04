@@ -116,6 +116,7 @@ const tanh = Math.tanh;
 const pow = Math.pow;
 const atan2 = Math.atan2;
 const rnd = Math.random;
+const abs = Math.abs;
 const dist2 = (i, j, x, y) => (i - x) * (i - x) + (j - y) * (j - y);
 const dist = (i, j, x, y) => sqrt(dist2(i, j, x, y));
 const normdir = (a, b) => {
@@ -163,8 +164,22 @@ const maps = {
     capital: [1000, 2000],
     cameraPos: v3(10, 25, 100),
     height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t)),
-    onStart: () => runScene('tutorial'),
-    onEnd: () => runScene('tutorialDone', () => setMap('sineRipples')),
+    onStart() { runScene('tutorial'); },
+    onEnd() { runScene('tutorialDone', () => setMap('line')) },
+    music: music.funky,
+  },
+
+  line: {
+    size: [12, 1],
+    startPos: [0, 0],
+    capital: [1000, 2000],
+    cameraPos: v3(10, 40, 120),
+    height(i, j, t) {
+      t = sin(0.001 * t)
+      return 1 + 0.5 * sin(4 * t + i + 2);
+    },
+    onStart() { runScene('map2'); },
+    onEnd() { setMap('sineRipples'); },
     music: music.cowboy,
   },
 
@@ -176,7 +191,7 @@ const maps = {
       const phi = 0.005 * t - 0.5 * dist(i, j, 10, 10);
       return 1 + 0.2 * sin(phi);
     },
-    onStart: () => runScene('map2'),
+    onStart: () => runScene('map3'),
     music: music.funky,
   },
 
@@ -313,6 +328,15 @@ const maps = {
       return 1.1 + tanh(hf.u[i][j]);
     },
     update(dt) { hf.update(dt); },
+  },
+
+  tilt: {
+  },
+
+  comb: {
+  },
+
+  maze: {
   },
 
 };

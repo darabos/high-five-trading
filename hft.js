@@ -98,6 +98,29 @@ function addStocks() {
   return stocks;
 }
 
+function addStairs() {
+  const stairs = [];
+  for (let i = 1; i < 5; ++i) {
+    for (let j = 0; j < i + 2; ++j) {
+      const geo = new THREE.BoxGeometry(5, 3, 5);
+      const mat = new THREE.MeshPhongMaterial( { color: 0x896215, emissive: 0x342507, flatShading: true, opacity: 0.5 } );
+      const block = new THREE.Mesh(geo, mat);
+      block.i = i;
+      block.j = j;
+      const c = j - (i + 1) / 2;
+      block.position.x = -i * 12 + c * c - 5 * map.size[0];
+      block.position.z = c * 10 * sqrt(i) - 5 * (map.size[1] % 2);
+      block.position.y = -6 * i;
+      block.rotation.x = 0.1 * rnd() * i;
+      block.rotation.y = 0.1 * rnd() * i;
+      block.basePos = block.position.clone();
+      scene.add(block);
+      stairs.push(block);
+    }
+  }
+  return stairs;
+}
+
 function addPlayer() {
   const geo = new THREE.SphereGeometry(3, 4, 2);
   const mat = new THREE.MeshPhongMaterial( { color: 0x896215, emissive: 0x896215, flatShading: true } );
@@ -192,6 +215,7 @@ const maps = {
       return 1 + 0.2 * sin(phi);
     },
     onStart: () => runScene('map3'),
+    onEnd() { setMap('checkerSine'); },
     music: music.funky,
   },
 
@@ -202,6 +226,7 @@ const maps = {
       const scale = 0.9;
       return 1 + 0.3 * sin(0.005 * t) * sin(10 + scale * i) * sin(10 + scale * j);
     },
+    onEnd() { setMap('frequencies'); },
   },
 
   frequencies: {
@@ -211,6 +236,7 @@ const maps = {
       const mask = max(0.1, tanh(10 - dist(i, j, 10, 10)));
       return mask * (1 + 0.3 * sin(0.0005 * t * (i + 10) + j));
     },
+    onEnd() { setMap('scribbles'); },
   },
 
   scribbles: {
@@ -253,17 +279,7 @@ const maps = {
         }
       }
     },
-  },
-
-  fast3Swirl: {
-    size: [20, 20],
-    capital: [1000, 2000],
-    height: (i, j, t) => {
-      i -= 10; j -= 10;
-      const r = sqrt(i * i + j * j);
-      const phi = 3 * atan2(i, j) - t * 0.002 + 0.5 * r;
-      return sin(phi) + 1.1;
-    },
+    onEnd() { setMap('slow2Swirl'); },
   },
 
   slow2Swirl: {
@@ -276,12 +292,26 @@ const maps = {
       const attenuation = pow(2, -0.02 * r * r);
       return sin(phi) * attenuation + 1.1;
     },
+    onEnd() { setMap('fast3Swirl'); },
+  },
+
+  fast3Swirl: {
+    size: [20, 20],
+    capital: [1000, 2000],
+    height: (i, j, t) => {
+      i -= 10; j -= 10;
+      const r = sqrt(i * i + j * j);
+      const phi = 3 * atan2(i, j) - t * 0.002 + 0.5 * r;
+      return sin(phi) + 1.1;
+    },
+    onEnd() { setMap('sharks'); },
   },
 
   sharks: {
     size: [20, 20],
     capital: [1000, 3000],
     onStart: () => runScene('epilogue'),
+    onEnd() { setMap('hfTest'); },
     sharks: [],
     update(dt) {
       while (map.sharks.length < 2) {
@@ -379,6 +409,7 @@ for (let i = 0; i < maps.length; ++i) {
 }
 let map;
 let stocks = [];
+let stairs = [];
 const player = { obj: addPlayer() };
 
 function setMap(name) {
@@ -388,11 +419,17 @@ function setMap(name) {
       scene.remove(stock);
     }
   }
+  for (let s of stairs) {
+    scene.remove(s);
+  }
   stocks = addStocks();
+  stairs = addStairs();
   player.i = map.startPos ? map.startPos[0] : floor(map.size[0] / 2);
   player.j = map.startPos ? map.startPos[1] : floor(map.size[1] / 2);
   player.stocks = map.capital[0]
   player.buyPrice = 1;
+  player.win = false;
+  stairState = 0;
 
   hf.u = [];
   hf.v = [];
@@ -424,6 +461,7 @@ function ij2vec(i, j) {
 
 let startTime;
 let t;
+let stairState;
 function animate(timestamp) {
 	requestAnimationFrame(animate);
   if (startTime === undefined) { startTime = timestamp; }
@@ -435,6 +473,12 @@ function animate(timestamp) {
     }
   }
   const pt = ij2vec(player.i, player.j);
+  if (player.win) {
+    pt.x -= 10;
+    if (t - player.win > 1000) {
+      map.onEnd();
+    }
+  }
   player.obj.position.lerp(pt, 1 - pow(0.995, dt));
   pt.y += 10;
   player.lookAt.lerp(pt, 1 - pow(0.99, dt));
@@ -443,6 +487,18 @@ function animate(timestamp) {
   if (map.cameraPos) {
     camera.position.lerp(map.cameraPos, 1 - pow(0.999, dt));
     camera.lookAt(0, 0, 0);
+  }
+
+  if (map.capital[1] <= player.capital) {
+    stairState += dt;
+    stairState = min(stairState, 2000);
+  } else if (stairState > 0) {
+    stairState -= 3 * dt;
+  }
+  for (let s of stairs) {
+    s.position.y = s.basePos.y + 0.005 * s.i * stairState + 10 * map.height(0, floor(map.size[1] / 2), t) / (s.i + 0.5);
+    s.rotation.y = 0.05 * s.i * sin(0.001 * t * (s.i + 0.1 * s.j));
+    s.material.transparent = player.capital < map.capital[1];
   }
 
   for (let e of effects) {
@@ -511,9 +567,7 @@ function onKeyDown(evt) {
   else if (evt.key === 'ArrowRight') { keys.right = true; }
   else if (evt.key === 'ArrowUp') { keys.up = true; }
   else if (evt.key === 'ArrowDown') { keys.down = true; }
-  else if (evt.key === 'c' && map.capital[1] <= player.capital) {
-    map.onEnd();
-  } else if (evt.key === ' ') { keys.space = true; }
+  else if (evt.key === ' ') { keys.space = true; }
 }
 function onKeyUp(evt) {
   if (evt.key === 'ArrowLeft') { keys.left = false; }
@@ -529,7 +583,7 @@ let keyBattery = 0;
 function handleKeys(dt) {
   const speed = 150;
   keyBattery = min(speed + dt, keyBattery + dt);
-  if (talking) { return; }
+  if (talking || player.win) { return; }
   if (keys.space) {
     hf.u[player.i][player.j] = -10;
   }
@@ -547,6 +601,9 @@ function handleKeys(dt) {
     const h1 = map.height(player.i, player.j, t);
     player.stocks = Math.max(10, floor(h0 * player.stocks / h1));
     player.buyPrice = h1;
+  } else if (keys.left && map.capital[1] <= player.capital && player.i == 0 &&
+    player.j < floor(map.size[1] / 2 + 2) && floor(map.size[1] / 2 - 2) < player.j) {
+    player.win = t;
   }
 }
 

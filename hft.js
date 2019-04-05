@@ -474,15 +474,24 @@ const effects = [];
 function addBoom(i, j, gain) {
   if (gain === 0) { return; }
   const g = Math.min(5, Math.abs(gain * 5));
-  const geo = new THREE.LatheGeometry([new THREE.Vector2(10, 0), new THREE.Vector2(10 - g, 0)], 50);
-  const mat = new THREE.MeshBasicMaterial(gain > 0 ? { color: 0x80ff40 } : { color: 0xff6060 });
+  const geo = new THREE.TorusGeometry(10, g, 5, 10);
+  const mat = new THREE.MeshPhongMaterial(gain > 0 ? { color: 0x80ff40 } : { color: 0x800000 });
   const b = new THREE.Mesh(geo, mat);
-  b.position.copy(ij2vec(i, j));
+  const pos = ij2vec(i, j);
+  b.position.copy(pos);
+  b.position.add(v3(0, 5, 0));
+  b.rotation.z = 105;
+  b.scale.set(0.1, 0.1, 0.1);
   scene.add(b);
   effects.push(b);
   const start = t;
   b.update = function() {
-    b.scale.multiplyScalar(1.1);
+    const life = 0.001 * (t - start);
+    const s = 0.5 + 0.5 * tanh(1 - 10 * (life - 0.5) * (life - 0.5))
+    b.scale.set(s, s, s);
+    b.rotation.y = 0.002 * (t - start);
+    b.position.copy(pos);
+    b.position.add(v3(0, 5 + life * 20, 0));
     if (start + 1000 < t) {
       scene.remove(b);
       effects.splice(effects.indexOf(b), 1);

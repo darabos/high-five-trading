@@ -623,9 +623,9 @@ document.body.insertAdjacentHTML('beforeend', `
   display: none; flex-direction: column; justify-content: center; text-align: center; align-items: center;
   color: white; text-shadow: 0 0 5px black;">
   <div style="
-    margin: 30px; font: 80px Fascinate, sans-serif;">High Five Trading</div>
-  <div id="menu" style="display: inline-block; font: 30px Audiowide, sans-serif;">
-    <style>#menu div { cursor: pointer; margin: 5px; } #menu div:hover { color: #fff249; }</style>
+    margin: 3vh; font: 8vh Fascinate, sans-serif;">High Five Trading</div>
+  <div id="menu" style="display: inline-block; font: 3vh Audiowide, sans-serif;">
+    <style>#menu div { cursor: pointer; margin: 1vh; } #menu div:hover { color: #fff249; }</style>
     <div onclick="continueGame()">Continue</div>
     <div onclick="newGame()">New game</div>
     <div>☑ Sound</div>
@@ -659,7 +659,7 @@ function talk(side, pic, text) {
   if (talk) {
     const img = document.getElementById('talk-pic');
     if (pic) {
-      talk.style.left = `calc(50% ${sign} 30px)`;
+      talk.style.left = `calc(50vw - 40vh ${sign} 3vh)`;
       talk.children[0].style.transform = transform;
       talk.children[0].style.flexDirection = side === 'L' ? 'row' : 'row-reverse';
       img.src = `pics/${pic}`;
@@ -674,29 +674,24 @@ function talk(side, pic, text) {
     return;
   }
   document.body.insertAdjacentHTML('beforeend', `
-  <div id="talk" style="transition: left 0.2s ease-out; position: absolute; bottom: 0; left: calc(50% ${sign} 30px); width: calc(50% - 100px);">
+  <div id="talk" style="
+    transition: left 0.2s ease-out; position: absolute; cursor: pointer;
+    bottom: 10vh; left: calc(50vw - 40vh ${sign} 3vh); width: 80vh; height: 30vh;"
+    onclick="advanceTalk()">
     <div style="
       transition: transform 0.2s ease-out;
-      position: relative; bottom: 15px; left: -50%; max-width: 500px;
-      padding: 20px; background: white; transform: ${transform}; flex-direction: ${side === 'L' ? 'row' : 'row-reverse'};
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font-family: sans-serif; border-radius: 10px; display: flex;">
+      width: 100%; height: 100%;
+      padding: 2vh; background: white; transform: ${transform}; flex-direction: ${side === 'L' ? 'row' : 'row-reverse'};
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font: 3vh sans-serif; border-radius: 1vh; display: flex;">
       <img id="talk-pic" src="pics/${pic}" style="
-        max-width: 256px; max-height: 256px; border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); margin-${side === 'L' ? 'right' : 'left'}: 10px;">
+        max-height: 100%; border-radius: 1vh;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); margin-${side === 'L' ? 'right' : 'left'}: 1vh;">
       <div style="display: flex; flex-direction: column; flex: 1;">
-      <style>p { margin: 10px; }</style>
+      <style>p { margin: 1vh; }</style>
       <div id="talk-text" style="flex: 1;">
         <p><b>${name}:</b></p>
         <p style="white-space: pre-wrap;">${text}</p>
       </div>
-      <div onclick="advanceTalk()" style="
-        width: 100px;
-        align-self: center;
-        text-align: center;
-        border-radius: 5px;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        cursor: pointer;
-      ">...</div>
     </div>
   </div>`);
 }
@@ -740,9 +735,10 @@ function preloadPics() {
 
 const script = {
   tutorial: [
-['L', 'mom-say', "No.\n\n<small>(Press Space or Enter to continue.)</small>"],
+['L', 'mom-say', "No.\n\n<small>(Click, tap, or press Space or Enter to continue.)</small>"],
 ['R', 'fiona-say', "But I can do it, Mom!"],
-['L', 'mom-say', "No. Trading stocks is more dangerous than you realize, Fiona. You cannot just use the arrow keys to move your entire portfolio into another stock."],
+['L', 'mom-say', "No. Trading stocks is more dangerous than you realize, Fiona."],
+['L', 'mom-say', "You cannot just use the arrow keys to move your entire portfolio into another stock."],
 ['R', 'fiona-shout', "Watch me!"],
   ],
   tutorialMovingBack: [
@@ -1079,7 +1075,6 @@ function playMusic() {
   new Howl({
     src: map.music || 'silence30.mp3',
     autoplay: true,
-    loop: true,
     volume: 0.5,
     onend: () => playMusic(),
   });

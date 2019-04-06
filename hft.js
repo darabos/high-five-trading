@@ -103,7 +103,7 @@ function addStairs() {
   for (let i = 1; i < 5; ++i) {
     for (let j = 0; j < i + 2; ++j) {
       const geo = new THREE.BoxGeometry(5, 3, 5);
-      const mat = new THREE.MeshPhongMaterial( { color: 0x896215, emissive: 0x342507, flatShading: true, opacity: 0.5 } );
+      const mat = new THREE.MeshPhongMaterial( { color: 0x896215, emissive: 0x342507, flatShading: true } );
       const block = new THREE.Mesh(geo, mat);
       block.i = i;
       block.j = j;
@@ -188,15 +188,15 @@ const maps = {
     cameraPos: v3(10, 25, 100),
     height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t)),
     onStart() { runScene('tutorial'); },
-    onEnd() { runScene('tutorialDone', () => setMap('line')) },
+    onEnd() { runScene('tutorialDone', () => setMap('linear')) },
     music: music.funky,
   },
 
-  line: {
+  linear: {
     size: [12, 1],
     startPos: [0, 0],
     capital: [1000, 2000],
-    cameraPos: v3(10, 40, 120),
+    cameraPos: v3(10, 40, 160),
     height(i, j, t) {
       t = sin(0.001 * t)
       return 1 + 0.5 * sin(4 * t + i + 2);
@@ -496,9 +496,9 @@ function animate(timestamp) {
     stairState -= 3 * dt;
   }
   for (let s of stairs) {
-    s.position.y = s.basePos.y + 0.005 * s.i * stairState + 10 * map.height(0, floor(map.size[1] / 2), t) / (s.i + 0.5);
+    s.position.y = s.basePos.y + 0.005 * s.i * stairState + 0.005 * stairState * map.height(0, floor(map.size[1] / 2), t) / (s.i + 0.5);
     s.rotation.y = 0.05 * s.i * sin(0.001 * t * (s.i + 0.1 * s.j));
-    s.material.transparent = player.capital < map.capital[1];
+    s.material.color.set(player.capital < map.capital[1] ? 0x42300a : 0x896215);
   }
 
   for (let e of effects) {
@@ -530,7 +530,7 @@ const effects = [];
 function addBoom(i, j, gain) {
   if (gain === 0) { return; }
   const g = Math.min(5, Math.abs(gain * 5));
-  const geo = new THREE.TorusGeometry(10, g, 5, 10);
+  const geo = new THREE.TorusGeometry(10, g, 5, 20);
   const mat = new THREE.MeshPhongMaterial(gain > 0 ? { color: 0x80ff40 } : { color: 0x800000 });
   const b = new THREE.Mesh(geo, mat);
   const pos = ij2vec(i, j);
@@ -662,20 +662,22 @@ function onTouchEnd(e) {
 document.body.insertAdjacentHTML('beforeend', `
 <div id="capital-group">
   <div id="capital-string" style="
-    position: absolute; top: 0; right: 15px;
-    padding: 10px 0; color: white;
-    font: 20px monospace;"></div>
-  <div style="border: 2px solid white; position: absolute; top: 40px; right: 10px;
-              width: 50px; height: calc(100vh - 50px); box-sizing: border-box;">
-    <div id="capital" style="background: white; position: absolute; bottom: 0; width: calc(100% - 10px); margin: 5px;">
+    position: absolute; top: 0; right: 1vh;
+    padding: 2vh 0; color: white;
+    font: 4vh monospace;"></div>
+  <div style="border: 0.2vh solid white; position: absolute; bottom: 1vh; right: 1vh;
+              width: 5vh; height: 90vh; box-sizing: border-box;">
+    <div id="capital" style="background: white; position: absolute; bottom: 0; width: 100%;">
     </div>
   </div>
 </div>`);
 const numberFormat = new Intl.NumberFormat('en-us');
 function showCapital() {
   const pct = min(100, 100 * player.capital / map.capital[1]);
-  document.getElementById('capital').style.height = `calc(${pct}% - 10px)`;
-  document.getElementById('capital').style.backgroundColor = pct === 100 ? '#00ff00' : 'white';
+  document.getElementById('capital').style.height = pct + '%';
+  document.getElementById('capital').style.backgroundColor = pct === 100 ? '#ffff44' : 'white';
+  document.getElementById('capital').parentElement.style.borderColor = pct === 100 ? '#ffff44' : 'white';
+  document.getElementById('capital-string').style.color = pct === 100 ? '#ffff44' : 'white';
   document.getElementById('capital-string').innerHTML = '$' + numberFormat.format((map.moneyScale || 1000) * player.capital);
 }
 
@@ -1139,7 +1141,7 @@ const script = {
 
 function playMusic() {
   new Howl({
-    src: map.music || 'silence30.mp3',
+    src: map.music || 'https://raw.githubusercontent.com/anars/blank-audio/master/30-seconds-of-silence.mp3',
     autoplay: true,
     volume: 0.5,
     onend: () => playMusic(),

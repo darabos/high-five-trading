@@ -154,14 +154,10 @@ const music = {
   funky: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_260809_Funky_Nurykabe.mp3',
   // Urbana-Metronica (wooh-yeah mix) by spinningmerkaba (c) copyright 2011 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/33345 Ft: Morusque, Jeris, CSoul, Alex Beroza
   urbana: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Urbana-Metronica_(wooh-yeah_mix).mp3',
-  // Across The Pacific  by spinningmerkaba (c) copyright 2016 Licensed under a Creative Commons Attribution Noncommercial  (3.0) license. http://dig.ccmixter.org/files/jlbrock44/55086
-  across: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Across_The_Pacific_.mp3',
-  // Pixie Pixels (featuring Kara Square) by spinningmerkaba (c) copyright 2016 Licensed under a Creative Commons Attribution Noncommercial  (3.0) license. http://dig.ccmixter.org/files/jlbrock44/53778
-  pixie: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Pixie_Pixels_(featuring_Kara_Square).mp3',
   // Reusenoise  (DNB Mix) by spinningmerkaba (c) copyright 2017 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/56531
   reusenoise: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Reusenoise_(DNB_Mix)_1.mp3',
-  // Kung Fu Cosplay (Sword of Destiny Mix) by spinningmerkaba (c) copyright 2016 Licensed under a Creative Commons Attribution Noncommercial  (3.0) license. http://dig.ccmixter.org/files/jlbrock44/53256
-  kungfu: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Kung_Fu_Cosplay_(Sword_of_Destiny_Mix).mp3',
+  // Organometron (140811 MIx) by spinningmerkaba (c) copyright 2011 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/33115 Ft: Morusque
+  organometron: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Organometron_(140811_MIx).mp3',
 };
 
 const maps = {
@@ -318,7 +314,7 @@ const maps = {
       return sin(phi) + 1.1;
     },
     onEnd() { setMap('sharks'); },
-    music: music.reusenoise,
+    music: music.organometron,
   },
 
   sharks: {
@@ -704,16 +700,16 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="menu-group" style="
   position: absolute; top: 0; width: 100vw; height: 100vh;
   display: none; flex-direction: column; justify-content: center; text-align: center; align-items: center;
-  color: white; text-shadow: 0 0 5px black;">
+  color: white; text-shadow: 0 0 0.5vh black;">
   <div style="
-    margin: 3vh; font: 8vh Fascinate, sans-serif;">High Five Trading</div>
-  <div id="menu" style="display: inline-block; font: 3vh Audiowide, sans-serif;">
+    margin: 3vh; font: 12vh Fascinate, sans-serif;">High Five Trading</div>
+  <div id="menu" style="display: inline-block; font: 5vh Audiowide, sans-serif;">
     <style>#menu div { cursor: pointer; margin: 1vh; } #menu div:hover { color: #fff249; }</style>
     <div onclick="continueGame()">Continue</div>
     <div onclick="newGame()">New game</div>
     <div id="sound" onclick="setSound(!options.sound)">☐ Sound</div>
     <div id="bloom" onclick="setBloom(!options.bloom)">☑ Bloom</div>
-    <div>Credits</div>
+    <div onclick="showCredits()">Credits</div>
   </div>
 </div>`);
 function continueGame() {
@@ -735,6 +731,52 @@ function setSound(setting) {
 }
 setBloom(options.bloom);
 setSound(options.sound);
+
+document.body.insertAdjacentHTML('beforeend', `
+<div id="credits-group" style="
+  position: absolute; top: 0; width: 100vw; height: 100vh;
+  display: none; flex-direction: column; justify-content: center; text-align: center; align-items: center;
+  color: white; text-shadow: 0 0 0.5vh black;" onclick="hideCredits()">
+  <div style="
+    margin: 1vh; font: 4vh Fascinate, sans-serif;">High Five Trading</div>
+  <style> a { color: #ffff44; } </style>
+  <div style="margin: 1vh; font: 3vh sans-serif;">
+    <p>A Repl.it Game Jam 2019 game by <a href="https://twitter.com/DanielDarabos">Daniel Darabos</a>.</p>
+    <p>
+      Character art generated with a fantastic <a href="https://arxiv.org/abs/1812.04948">StyleGAN</a>
+      model trained by <a href="https://www.gwern.net/Faces">Gwern Branwen</a>
+      through a <a href="https://colab.research.google.com/drive/1LiWxqJJMR5dg4BxwUgighaWp2U_enaFd#offline=true&sandboxMode=true">Colaboratory notebook</a>
+      by <a href="https://twitter.com/halcy">@halcy</a>.
+    </p>
+    <p>
+      Cat photos by <a href="https://www.publicdomainpictures.net/en/browse-author.php?hleda=cat&seradit=date&a=8245">George Hodan</a>.
+    </p>
+    <p>
+      All music by <a href="http://dig.ccmixter.org/people/jlbrock44">spinningmerkaba</a>,
+      graciously licensed under Creative Commons Attribution (3.0).
+    </p>
+    <p>
+      JavaScript dependencies: <a href="https://threejs.org/">three.js</a> and <a href="https://howlerjs.com">howler.js</a>
+      kindly provided by <a href="https://twitter.com/mrdoob">Ricardo Cabello</a>
+      and <a href="https://twitter.com/GoldFireStudios">James Simpson</a> and their collaborators under the MIT license.
+    </p>
+    <p>
+      Using the <a href="https://fonts.google.com/specimen/Fascinate">Fascinate</a>
+      and <a href="https://fonts.google.com/specimen/Audiowide">Audiowide</a>
+      fonts by <a href="http://astigmatic.com/">Astigmatic</a> under the Open Font License.
+    </p>
+
+  </div>
+</div>
+`);
+function showCredits() {
+  document.getElementById('menu-group').style.display = 'none';
+  document.getElementById('credits-group').style.display = 'flex';
+}
+function hideCredits() {
+  document.getElementById('menu-group').style.display = 'flex';
+  document.getElementById('credits-group').style.display = 'none';
+}
 
 function talk(side, pic, text) {
   let name;
@@ -773,10 +815,10 @@ function talk(side, pic, text) {
       transition: transform 0.2s ease-out;
       width: 100%; height: 100%;
       padding: 2vh; background: white; transform: ${transform}; flex-direction: ${side === 'L' ? 'row' : 'row-reverse'};
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font: 3vh sans-serif; border-radius: 1vh; display: flex;">
+      box-shadow: 0 0.2vh 1vh rgba(0, 0, 0, 0.5); font: 3vh sans-serif; border-radius: 1vh; display: flex;">
       <img id="talk-pic" src="pics/${pic}" style="
         max-height: 100%; border-radius: 1vh; ${ side === 'L' ? 'transform: scaleX(-1);' : '' }
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); margin-${side === 'L' ? 'right' : 'left'}: 1vh;">
+        box-shadow: 0 0.2vh 1vh rgba(0, 0, 0, 0.5); margin-${side === 'L' ? 'right' : 'left'}: 1vh;">
       <div style="display: flex; flex-direction: column; flex: 1;">
       <style>p { margin: 1vh; }</style>
       <div id="talk-text" style="flex: 1;">

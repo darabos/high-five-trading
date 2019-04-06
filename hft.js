@@ -403,6 +403,15 @@ const maps = {
   },
 
   comb: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      const s = floor(j / 2) % 2 * 2 - 1;
+      const p = s * (i - 9.5);
+      return 1 + 0.5 * (1 + sin((0.01 * t + 0.2 * j + 0.5 * p))) * (1 + tanh( 0.2 * p));
+    },
+    onEnd() { setMap('maze'); },
+    music: music.cowboy,
   },
 
   maze: {
@@ -1170,7 +1179,7 @@ const script = {
 // TODO
   map23: [
 ['L', 'dolores-say', "We are almost there."],
-['L', 'dolores-say', "The datacenter is just beyond this trading floor."],
+['L', 'dolores-say', "The data center is just beyond this trading floor."],
 ['L', 'dolores-smile', "Act casual."],
 ['R', 'fiona-laugh', "I will just casually rack up a few billion dollars of profit."],
   ],
@@ -1201,7 +1210,7 @@ const script = {
 ['L', 'angelica-serious', "Alright."],
 ['L', 'angelica-serious', "You go on back to the exchange."],
 ['L', 'angelica-jolly', "Break bank. Distract it."],
-['L', 'angelica-happy', "I will get a can of gas at the station and set this datacenter on fire."],
+['L', 'angelica-happy', "I will get a can of gas at the station and set this data center on fire."],
   ],
 
   epilogue: [
@@ -1212,7 +1221,7 @@ const script = {
 ['L', 'mom-say', "Dolores! Is Fiona cooking for you?"],
 ['L', 'mom-smile', "I hear some sizzling in the background."],
 ['R', 'fiona-smile', "Yeah, I'm cooking."],
-['R', 'fiona-laugh', "We're having a datacenter barbecue."],
+['R', 'fiona-laugh', "We're having a data center barbecue."],
 ['R', 'dolores-smile', "Isn't it nice to sit by the fire on a cold evening like this?"],
 ['R', 'cat-down.jpg', "Purr."],
 ['R', 'angelica-happy', "Hey, Mrs Five. I'm Angelica Siebel, a huge admirer of yours."],

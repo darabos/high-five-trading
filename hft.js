@@ -178,6 +178,8 @@ const music = {
   reusenoise: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Reusenoise_(DNB_Mix)_1.mp3',
   // Organometron (140811 MIx) by spinningmerkaba (c) copyright 2011 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/33115 Ft: Morusque
   organometron: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Organometron_(140811_MIx).mp3',
+  // Sticky Bumps (featuring Debbizo) by spinningmerkaba (c) copyright 2011 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/32247
+  sticky: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Sticky_Bumps_(featuring_Debbizo).mp3',
 };
 
 const maps = {
@@ -417,7 +419,6 @@ const maps = {
       const drag = pow(0.9999, dt);
       map.tilt.vx = drag * map.tilt.vx + 0.002 * dt * (t.x - map.tilt.x);
       map.tilt.vy = drag * map.tilt.vy + 0.002 * dt * (t.y - map.tilt.y);
-      //console.log(map.tilt, t);
     },
     onEnd() { setMap('sharks'); },
     music: music.organometron,
@@ -436,6 +437,61 @@ const maps = {
   },
 
   maze: {
+    size: [19, 19],
+    startPos: [18, 9],
+    cameraPos: v3(-120, 200, 300),
+    capital: [1000, 3000],
+    height: function(i, j, t) {
+      const m = map.mask[i][j];
+      if (m === 0) {
+        return 1.1 + tanh(hf.u[i][j]);
+      } else if (m === 1) {
+        return 2;
+      } else {
+        return 2 + sin(0.003 * t);
+      }
+    },
+    onStart() {
+      const mask = [];
+      for (let i = 0; i < map.size[0]; ++i) {
+        const r = [];
+        for (let j = 0; j < map.size[1]; ++j) {
+          r.push(0);
+        }
+        mask.push(r);
+      }
+      let x = 18;
+      let y = 18;
+      mask[x][y] = 2;
+      while (x !== 0 || y !== 8) {
+        const r = rnd();
+        if (r < 0.25 && x < 18 && (mask[x + 1][y] || !mask[x + 2][y])) {
+          x += 1;
+          mask[x][y] = 1;
+          x += 1;
+          mask[x][y] = mask[x][y] || 1;
+        } else if (r < 0.5 && y < 18 && (mask[x][y + 1] || !mask[x][y + 2])) {
+          y += 1;
+          mask[x][y] = 1;
+          y += 1;
+          mask[x][y] = mask[x][y] || 1;
+        } else if (r < 0.75 && x > 0 && (mask[x - 1][y] || !mask[x - 2][y])) {
+          x -= 1;
+          mask[x][y] = 1;
+          x -= 1;
+          mask[x][y] = mask[x][y] || 1;
+        } else if (y > 0 && (mask[x][y - 1] || !mask[x][y - 2])) {
+          y -= 1;
+          mask[x][y] = 1;
+          y -= 1;
+          mask[x][y] = mask[x][y] || 1;
+        }
+      }
+      map.mask = mask;
+    },
+    playerWeight: 1,
+    update(dt) { hf.update(dt); },
+    music: music.sticky,
   },
 
 };

@@ -346,7 +346,7 @@ const maps = {
     size: [20, 20],
     capital: [1000, 3000],
     onStart: () => runScene('epilogue'),
-    onEnd() { setMap('hfTest'); },
+    onEnd() { setMap('tilt'); },
     sharks: [],
     update(dt) {
       while (map.sharks.length < 2) {
@@ -387,15 +387,6 @@ const maps = {
     music: music.pixie,
   },
 
-  hfTest: {
-    size: [20, 20],
-    capital: [1000, 3000],
-    height: function(i, j, t) {
-      return 1.1 + tanh(hf.u[i][j]);
-    },
-    update(dt) { hf.update(dt); },
-  },
-
   tilt: {
     size: [20, 20],
     capital: [1000, 10000],
@@ -422,7 +413,7 @@ const maps = {
       map.tilt.vx = drag * map.tilt.vx + 0.002 * dt * (t.x - map.tilt.x);
       map.tilt.vy = drag * map.tilt.vy + 0.002 * dt * (t.y - map.tilt.y);
     },
-    onEnd() { setMap('sharks'); },
+    onEnd() { setMap('comb'); },
     music: music.organometron,
   },
 
@@ -494,6 +485,7 @@ const maps = {
     playerWeight: 1,
     update(dt) { hf.update(dt); },
     music: music.sticky,
+    onEnd() { setMap('lissajous'); },
   },
 
   lissajous: {
@@ -511,7 +503,7 @@ const maps = {
       }
       return 1.1 + tanh(h);
     },
-    onEnd() { setMap('dimples'); },
+    onEnd() { setMap('chaoticWaves'); },
     music: music.cowboy,
   },
 
@@ -570,11 +562,9 @@ const maps = {
       }
       return 2.1 + 2 * tanh(h);
     },
-    onEnd() { setMap('maze'); },
+    onEnd() { setMap('castle'); },
     music: music.cowboy,
   },
-
-  bubbles: {},
 
   castle: {
     stockWidth: 9,
@@ -634,7 +624,7 @@ const maps = {
         }
       }
     },
-    onEnd() { setMap('maze'); },
+    onEnd() { setMap(options.sound ? 'music' : 'hfTest'); },
     music: music.pixie,
   },
 
@@ -664,16 +654,28 @@ const maps = {
     },
     onEnd() {
       Howler.masterGain.disconnect(map.analyser);
-      setMap('mountain');
+      setMap('hfTest');
     },
     music: music.cowboy,
   },
+
+  hfTest: {
+    size: [20, 20],
+    capital: [1000, 3000],
+    height: function(i, j, t) {
+      return 1.1 + tanh(hf.u[i][j]);
+    },
+    update(dt) { hf.update(dt); },
+  },
+
+  bubbles: {},
 
   mountain: {},
 
   collapsible: {},
 
 };
+console.log(Object.keys(maps).length, 'maps');
 
 const hf = {
   get(i, j) {
@@ -989,7 +991,7 @@ function showCapital() {
 
 const options = {
   bloom: true,
-  sound: false,
+  sound: true,
 };
 document.body.insertAdjacentHTML('beforeend', `
 <div id="menu-group" style="
@@ -1498,6 +1500,7 @@ const script = {
   ],
 
 };
+console.log(Object.keys(script).length, 'scripts');
 
 function playMusic() {
   new Howl({

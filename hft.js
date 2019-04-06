@@ -53,11 +53,10 @@ function addLights() {
   const l = new THREE.HemisphereLight();
   l.color.setHSL(0.6, 1, 0.99);
   l.groundColor.setHSL(0.6, 0, 0.5);
-
-  addLight(0, 200, 0);
-  addLight(100, 200, 100);
-  addLight(-100, -200, -100);
   scene.add(l);
+
+  addLight(0, 400, 0);
+  addLight(-200, 10, 50);
 }
 
 function addGround() {
@@ -102,11 +101,13 @@ addSky();
 
 function addStocks() {
   const stocks = [];
+  const w = map.stockWidth || 5;
   for (let i = 0; i < map.size[0]; ++i) {
     const row = [];
     for (let j = 0; j < map.size[1]; ++j) {
-      const geo = new THREE.BoxGeometry(5, 20, 5);
-      const mat = new THREE.MeshPhongMaterial( { color: 0x156289, emissive: 0x072534, flatShading: true } );
+      const geo = new THREE.BoxGeometry(w, 20, w);
+      const color = 0x105080;
+      const mat = new THREE.MeshPhongMaterial( { color, emissive: color, flatShading: true } );
       const block = new THREE.Mesh(geo, mat);
       block.position.x = i * 10 - 5 * map.size[0];
       block.position.z = j * 10 - 5 * map.size[1];
@@ -329,7 +330,8 @@ const maps = {
 
   fast3Swirl: {
     size: [20, 20],
-    capital: [1000, 2000],
+    startPos: [19, 9],
+    capital: [10, 1000000000],
     height: (i, j, t) => {
       i -= 10; j -= 10;
       const r = sqrt(i * i + j * j);
@@ -574,7 +576,67 @@ const maps = {
 
   bubbles: {},
 
-  castle: {},
+  castle: {
+    stockWidth: 9,
+    cameraPos: v3(-120, 200, 300),
+    size: [19, 19],
+    capital: [1000, 2000],
+    startPos: [0, 9],
+    height: (i, j, t) => {
+      const s = map.str[j][i];
+      i -= 11;
+      j -= 9;
+      const r = sqrt(i * i + j * j);
+      const phi = 3 * atan2(i, j) - t * 0.002 + 0.5 * r;
+      let h = 0.03 * r * (1 + sin(phi));
+      const dt = t - (map.bellTime || t);
+      h *= 1 - pow(2, -0.000001 * dt * dt);
+      return s === '~' ? 0.5 : s === ' ' ? 1 : 2 + 0.5 * parseInt(s) + h;
+    },
+
+    update() {
+      if (player.i == 11 && player.j === 9 && !map.bellTime) {
+        map.bellTime = t;
+      }
+    },
+
+    onStart() {
+      map.str = `
+~~~~~~~~~~~~~~~~~~~
+~54545~~~~~~~54545~
+~43334323232343334~
+~53335111111153335~
+~43334323232343334~
+~54545       54545~
+~~313         313~~
+~~212  22233  212~~
+~~313  33344  313~~
+  212  44457  212~~
+~~313  33344  313~~
+~~212  22233  212~~
+~~313         313~~
+~54545       54545~
+~43334323232343334~
+~53335111111153335~
+~43334323232343334~
+~54545~~~~~~~54545~
+~~~~~~~~~~~~~~~~~~~
+`.trim().split('\n');
+      for (let i = 0; i < map.size[0]; ++i) {
+        for (let j = 0; j < map.size[1]; ++j) {
+          if (map.str[j][i] === ' ') {
+            stocks[i][j].material.color.set(0x204000);
+            stocks[i][j].material.emissive.set(0x204000);
+          } else if (map.str[j][i] !== '~') {
+            stocks[i][j].material.color.set(0x666666);
+            stocks[i][j].material.emissive.set(0);
+          }
+        }
+      }
+    },
+    onEnd() { setMap('maze'); },
+    music: music.pixie,
+  },
 
   music: {
     size: [20, 20],

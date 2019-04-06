@@ -3,7 +3,8 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color().setHSL(0.6, 0, 1);
 scene.fog = new THREE.Fog(scene.background, 1, 3000);
 
-const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000);
+const fov = 60 * window.innerHeight / window.innerWidth;
+const camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 5000);
 camera.position.set(-90, 300, 300);
 camera.lookAt(0, 0, 0);
 
@@ -568,7 +569,7 @@ const maps = {
 
   castle: {
     stockWidth: 9,
-    cameraPos: v3(-120, 200, 300),
+    cameraPos: v3(-120, 150, 200),
     size: [19, 19],
     capital: [1000, 2000],
     startPos: [0, 9],
@@ -804,7 +805,7 @@ function animate(timestamp) {
   for (let s of stairs) {
     s.position.y = s.basePos.y + 0.005 * s.i * stairState + 0.005 * stairState * map.height(0, floor(map.size[1] / 2), t) / (s.i + 0.5);
     s.rotation.y = 0.05 * s.i * sin(0.001 * t * (s.i + 0.1 * s.j));
-    s.material.color.set(player.capital < map.capital[1] ? 0x42300a : 0x896215);
+    s.material.color.set(player.capital < map.capital[1] && !player.win ? 0x42300a : 0x896215);
   }
 
   for (let e of effects) {

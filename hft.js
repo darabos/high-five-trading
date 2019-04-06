@@ -574,6 +574,43 @@ const maps = {
 
   bubbles: {},
 
+  castle: {},
+
+  music: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      return 0.1 + 0.2 * map.freqs[j][i] / (j + 10);
+    },
+    update(dt) {
+      if (map.lastTime + 50 < t) {
+        map.freqs.unshift(map.freqs.splice(-1)[0]);
+        map.analyser.getByteFrequencyData(map.freqs[0]);
+        map.lastTime = t;
+      }
+    },
+    onStart() {
+      map.lastTime = t || 0;
+      map.analyser = Howler.ctx.createAnalyser();
+      map.analyser.fftSize = 64;
+      map.analyser.smoothingTimeConstant = 0;
+      Howler.masterGain.connect(map.analyser);
+      map.freqs = [];
+      for (let j = 0; j < map.size[1]; ++j) {
+        map.freqs.push(new Uint8Array(map.analyser.frequencyBinCount));
+      }
+    },
+    onEnd() {
+      Howler.masterGain.disconnect(map.analyser);
+      setMap('mountain');
+    },
+    music: music.cowboy,
+  },
+
+  mountain: {},
+
+  collapsible: {},
+
 };
 
 const hf = {

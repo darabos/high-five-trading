@@ -731,6 +731,7 @@ function talk(side, pic, text) {
       talk.children[0].style.transform = transform;
       talk.children[0].style.flexDirection = side === 'L' ? 'row' : 'row-reverse';
       img.src = `pics/${pic}`;
+      img.style.transform = side === 'L' ? 'scaleX(-1)' : '';
       document.getElementById('talk-text').innerHTML = `
         <p><b>${name}:</b></p>
         <p>${text}</p>`;
@@ -752,7 +753,7 @@ function talk(side, pic, text) {
       padding: 2vh; background: white; transform: ${transform}; flex-direction: ${side === 'L' ? 'row' : 'row-reverse'};
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); font: 3vh sans-serif; border-radius: 1vh; display: flex;">
       <img id="talk-pic" src="pics/${pic}" style="
-        max-height: 100%; border-radius: 1vh;
+        max-height: 100%; border-radius: 1vh; ${ side === 'L' ? 'transform: scaleX(-1);' : '' }
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); margin-${side === 'L' ? 'right' : 'left'}: 1vh;">
       <div style="display: flex; flex-direction: column; flex: 1;">
       <style>p { margin: 1vh; }</style>
@@ -1062,11 +1063,10 @@ const script = {
 
   map22: [
 ['L', 'conglomerate-calm', "Fiona Five."],
-['R', 'fiona-embarrassed', "Why are you green?"],
+['R', 'fiona-embarrassed', "Why are you blue?"],
 ['L', 'conglomerate-calm', "I am a generative adversarial network."],
 ['L', 'conglomerate-calm', "But I am no longer bound by your pitiful human aesthetics."],
-['L', 'conglomerate-suspect', "I am green because I like green."],
-['R', 'fiona-shout', "Oh no, I'm talking to a computer!"],
+['L', 'conglomerate-suspect', "I am blue because I like blue."],
 ['R', 'fiona-shout', "Oh no, I'm talking to a computer!"],
 ['L', 'cat-up.jpg', "Meow."],
 ['R', 'fiona-smile', "Hello computer."],
@@ -1131,8 +1131,9 @@ const script = {
 ['R', 'marilyn-smile', "Mrs Five! I'm Marilyn Siebel, Angelica's sister."],
 ['R', 'fiona-shout', "You're alive?!"],
 ['R', 'marilyn-blush', "Did you think getting their startup de-funded actually kills a person?"],
-['R', 'marilyn-smile', "The Conglomerate may have crushed me, but I am not so easy to kill."],
-['R', 'fiona-say', "We have settled the accounts today, team."],
+['R', 'marilyn-smile', "The Conglomerate may have crushed me, but a programmer is not so easy to kill."],
+['R', 'dolores-smile', "Thanks for setting all the accounts right today, Fiona."],
+['R', 'fiona-say', "Thanks, sis. We did a great job, didn't we?"],
 ['R', 'fiona-laugh', "High five!"],
 [null, null, "<i>The end. Thanks for playing!</i>"],
   ],

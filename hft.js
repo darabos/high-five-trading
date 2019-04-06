@@ -152,7 +152,16 @@ const music = {
   cowboy: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Cowboy_Glitch_(borja_vs._go1dfish).mp3',
   // 260809 Funky Nurykabe by spinningmerkaba (c) copyright 2010 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/29186
   funky: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_260809_Funky_Nurykabe.mp3',
-
+  // Urbana-Metronica (wooh-yeah mix) by spinningmerkaba (c) copyright 2011 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/33345 Ft: Morusque, Jeris, CSoul, Alex Beroza
+  urbana: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Urbana-Metronica_(wooh-yeah_mix).mp3',
+  // Across The Pacific  by spinningmerkaba (c) copyright 2016 Licensed under a Creative Commons Attribution Noncommercial  (3.0) license. http://dig.ccmixter.org/files/jlbrock44/55086
+  across: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Across_The_Pacific_.mp3',
+  // Pixie Pixels (featuring Kara Square) by spinningmerkaba (c) copyright 2016 Licensed under a Creative Commons Attribution Noncommercial  (3.0) license. http://dig.ccmixter.org/files/jlbrock44/53778
+  pixie: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Pixie_Pixels_(featuring_Kara_Square).mp3',
+  // Reusenoise  (DNB Mix) by spinningmerkaba (c) copyright 2017 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/56531
+  reusenoise: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Reusenoise_(DNB_Mix)_1.mp3',
+  // Kung Fu Cosplay (Sword of Destiny Mix) by spinningmerkaba (c) copyright 2016 Licensed under a Creative Commons Attribution Noncommercial  (3.0) license. http://dig.ccmixter.org/files/jlbrock44/53256
+  kungfu: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Kung_Fu_Cosplay_(Sword_of_Destiny_Mix).mp3',
 };
 
 const maps = {
@@ -166,7 +175,7 @@ const maps = {
       const phi = 3 * atan2(i, j) - t * 0.002 + 0.5 * r;
       return sin(phi) + 1.1;
     },
-    music: music.cowboy,
+    music: music.reusenoise,
     cameraPos: v3(10, 30, 150),
     update(dt) {
       map.cameraPos.applyAxisAngle(v3(0, 1, 0), 0.001 * dt);
@@ -189,7 +198,7 @@ const maps = {
     height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t)),
     onStart() { runScene('tutorial'); },
     onEnd() { runScene('tutorialDone', () => setMap('linear')) },
-    music: music.funky,
+    music: music.across,
   },
 
   linear: {
@@ -203,7 +212,7 @@ const maps = {
     },
     onStart() { runScene('map2'); },
     onEnd() { setMap('sineRipples'); },
-    music: music.cowboy,
+    music: music.pixie,
   },
 
   sineRipples: {
@@ -227,6 +236,7 @@ const maps = {
       return 1 + 0.3 * sin(0.005 * t) * sin(10 + scale * i) * sin(10 + scale * j);
     },
     onEnd() { setMap('frequencies'); },
+    music: music.urbana,
   },
 
   frequencies: {
@@ -237,6 +247,7 @@ const maps = {
       return mask * (1 + 0.3 * sin(0.0005 * t * (i + 10) + j));
     },
     onEnd() { setMap('scribbles'); },
+    music: music.kungfu,
   },
 
   scribbles: {
@@ -280,6 +291,7 @@ const maps = {
       }
     },
     onEnd() { setMap('slow2Swirl'); },
+    music: music.cowboy,
   },
 
   slow2Swirl: {
@@ -293,6 +305,7 @@ const maps = {
       return sin(phi) * attenuation + 1.1;
     },
     onEnd() { setMap('fast3Swirl'); },
+    music: music.across,
   },
 
   fast3Swirl: {
@@ -305,6 +318,7 @@ const maps = {
       return sin(phi) + 1.1;
     },
     onEnd() { setMap('sharks'); },
+    music: music.reusenoise,
   },
 
   sharks: {
@@ -349,6 +363,7 @@ const maps = {
       }
       return h;
     },
+    music: music.pixie,
   },
 
   hfTest: {
@@ -683,7 +698,7 @@ function showCapital() {
 
 const options = {
   bloom: true,
-  sound: true,
+  sound: false,
 };
 document.body.insertAdjacentHTML('beforeend', `
 <div id="menu-group" style="
@@ -696,8 +711,8 @@ document.body.insertAdjacentHTML('beforeend', `
     <style>#menu div { cursor: pointer; margin: 1vh; } #menu div:hover { color: #fff249; }</style>
     <div onclick="continueGame()">Continue</div>
     <div onclick="newGame()">New game</div>
-    <div>☑ Sound</div>
-    <div onclick="toggleBloom(this)">☑ Bloom</div>
+    <div id="sound" onclick="setSound(!options.sound)">☐ Sound</div>
+    <div id="bloom" onclick="setBloom(!options.bloom)">☑ Bloom</div>
     <div>Credits</div>
   </div>
 </div>`);
@@ -709,10 +724,17 @@ function newGame() {
   map.onEnd();
   setMap('tutorial');
 }
-function toggleBloom(div) {
-  options.bloom = !options.bloom;
-  div.innerHTML = options.bloom ? '☑ Bloom' : '☐ Bloom';
+function setBloom(setting) {
+  options.bloom = setting;
+  document.getElementById('bloom').innerHTML = options.bloom ? '☑ Bloom' : '☐ Bloom';
 }
+function setSound(setting) {
+  options.sound = setting;
+  document.getElementById('sound').innerHTML = options.sound ? '☑ Sound' : '☐ Sound';
+  Howler.mute(!options.sound);
+}
+setBloom(options.bloom);
+setSound(options.sound);
 
 function talk(side, pic, text) {
   let name;

@@ -372,6 +372,34 @@ const maps = {
   },
 
   tilt: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    tilt: { x: 0, y: 0, vx: 0, vy: 0 },
+    height: (i, j, t) => {
+      i -= 9.5; j -= 9.5;
+      return 2.1 + i * map.tilt.x + j * map.tilt.y;
+    },
+    update(dt) {
+      map.tilt.x += 0.001 * dt * map.tilt.vx;
+      map.tilt.y += 0.001 * dt * map.tilt.vy;
+      const d = sqrt(map.tilt.x * map.tilt.x + map.tilt.y * map.tilt.y) * 10 / sqrt(2);
+      if (d > 1) {
+        map.tilt.x /= d;
+        map.tilt.y /= d;
+      }
+      const t = { x: 9.5 - player.i, y: 9.5 - player.j };
+      t.d = sqrt(t.x * t.x + t.y * t.y) * 10 / sqrt(2);
+      if (t.d > 0.5) {
+        t.x /= 2 * t.d;
+        t.y /= 2 * t.d;
+      }
+      const drag = pow(0.9999, dt);
+      map.tilt.vx = drag * map.tilt.vx + 0.002 * dt * (t.x - map.tilt.x);
+      map.tilt.vy = drag * map.tilt.vy + 0.002 * dt * (t.y - map.tilt.y);
+      //console.log(map.tilt, t);
+    },
+    onEnd() { setMap('sharks'); },
+    music: music.organometron,
   },
 
   comb: {

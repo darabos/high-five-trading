@@ -494,6 +494,86 @@ const maps = {
     music: music.sticky,
   },
 
+  lissajous: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      i -= 9.5; j -= 9.5;
+      let h = 0;
+      for (let k = 0; k < 10; ++k) {
+        const dx = 8 * sin(0.001 * t + k * Math.PI / 5);
+        const dy = 8 * cos(0.00123 * t + k * Math.PI / 5);
+        const d = dist(i, j, dx, dy);
+        const s = k % 2 * 2 - 1;
+        h += s * pow(2, -0.2 * d * d);
+      }
+      return 1.1 + tanh(h);
+    },
+    onEnd() { setMap('dimples'); },
+    music: music.cowboy,
+  },
+
+  chaoticWaves: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      i -= 9.5; j -= 9.5;
+      let h = 0;
+      for (let k = 0; k < 20; ++k) {
+        const dx = 8 * sin(0.001 * (t + 1000 * k));
+        const dy = 8 * cos(0.00123 * (t + 1000 * k));
+        const d = dist(i, j, dx, dy);
+        const s = k % 2 * 2 - 1;
+        h += s * pow(2, -0.2 * d * d);
+      }
+      return 1.1 + tanh(h);
+    },
+    onEnd() { setMap('dimples'); },
+    music: music.cowboy,
+  },
+
+  dimples: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      i -= 9.5; j -= 9.5;
+      t += 300000;
+      let h = 0;
+      for (let k = 1; k < 4; ++k) {
+        const dx = 8 * sin(0.0005 * t + 0.0001 * t * k);
+        const dy = 8 * cos(0.0005 * t + 0.0001 * t * sqrt(k));
+        const d = dist(i, j, dx, dy);
+        const s = k % 2 * 2 - 1;
+        h += s * pow(2, -0.3 * d * d);
+      }
+      return 2.1 + 2 * tanh(h);
+    },
+    onEnd() { setMap('manyDimples'); },
+    music: music.cowboy,
+  },
+
+  manyDimples: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      i -= 9.5; j -= 9.5;
+      t += 100000;
+      let h = 0;
+      for (let k = 0; k < 8; ++k) {
+        const dx = 8 * sin(0.001 * t + 0.0001 * t * k);
+        const dy = 8 * cos(0.001 * t + 0.0001 * t * sqrt(k));
+        const d = dist(i, j, dx, dy);
+        const s = k % 2 * 2 - 1;
+        h += s * pow(2, -0.3 * d * d);
+      }
+      return 2.1 + 2 * tanh(h);
+    },
+    onEnd() { setMap('maze'); },
+    music: music.cowboy,
+  },
+
+  bubbles: {},
+
 };
 
 const hf = {

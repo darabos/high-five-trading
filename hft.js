@@ -23,6 +23,26 @@ function setupComposer() {
 }
 const composer = setupComposer();
 
+const textureLoader = new THREE.TextureLoader();
+const particles = new THREE.GPUParticleSystem({
+  maxParticles: 25000,
+  particleSpriteTex: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/r103/examples/textures/particle2.png'),
+  particleNoiseTex: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/r103/examples/textures/perlin-512.png'),
+});
+scene.add(particles);
+const dust = {
+  position: v3(-60, 30, 0),
+  positionRandomness: 200,
+  velocity: v3(3, 0, 0.2),
+  velocityRandomness: .5,
+  color: 0xffffff,
+  colorRandomness: .2,
+  turbulence: .2,
+  lifetime: 20,
+  size: 20,
+  sizeRandomness: 20,
+};
+
 function addLight(x, y, z) {
   const l = new THREE.PointLight(0xffffff, 1, 0);
   l.position.set(x, y, z);
@@ -165,6 +185,7 @@ const maps = {
   demo: {
     size: [30, 30],
     capital: [1000, 2000],
+    dust: 1000,
     height: (i, j, t) => {
       i -= 15; j -= 15;
       const r = sqrt(i * i + j * j);
@@ -554,9 +575,11 @@ function animate(timestamp) {
   }
   map.update && map.update(dt);
   handleKeys(dt);
-  // TODO: player weight?
-  //hf.u[player.i][player.j] = -10;
-  //hf.v[player.i][player.j] = -1;
+  hf.v[player.i][player.j] = min(hf.v[player.i][player.j], -map.playerWeight || 10);
+  for (let i = 0; i < (map.dust || 0) * 0.001 * dt; ++i) {
+    particles.spawnParticle(dust);
+  }
+  particles.update(0.001 * t);
   if (options.bloom) {
     composer.render(scene, camera);
   } else {

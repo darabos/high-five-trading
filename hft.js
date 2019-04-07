@@ -5,7 +5,7 @@ scene.fog = new THREE.Fog(scene.background, 1, 3000);
 
 const fov = 60 * window.innerHeight / window.innerWidth;
 const camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 5000);
-camera.position.set(-90, 300, 300);
+camera.position.set(-90, 200, 300);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -239,7 +239,7 @@ const maps = {
   sineRipples: {
     size: [20, 20],
     capital: [1000, 3000],
-    cameraPos: v3(10, 80, 200),
+    cameraPos: v3(-40, 120, 250),
     height: function(i, j, t) {
       const phi = 0.005 * t - 0.5 * dist(i, j, 10, 10);
       return 1 + 0.2 * sin(phi);
@@ -630,6 +630,7 @@ const maps = {
   },
 
   music: {
+    cameraPos: v3(-90, 300, 300),
     size: [20, 20],
     capital: [1000, 10000],
     height: (i, j, t) => {
@@ -667,9 +668,40 @@ const maps = {
       return 1.1 + tanh(hf.u[i][j]);
     },
     update(dt) { hf.update(dt); },
+    onEnd() { setMap('bubbles'); },
+    music: music.reusenoise,
   },
 
-  bubbles: {},
+  bubbles: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: function(i, j, t) {
+      let h = 0;
+      for (let b of map.bubs) {
+        const d = dist(i, j, b.x, b.y);
+        const r = 0.002 * (t - b.t);
+        if (d < r) {
+          h = max(h, sqrt(r * r - d * d));
+        }
+      }
+      return 1 + h;
+    },
+    update(dt) {
+      if (map.bubs.length < 3 && rnd() > pow(Math.E, -0.001 * dt)) {
+        map.bubs.push({ x: 4 + floor(12 * rnd()), y: 4 + floor(12 * rnd()), t, ttl: 900 + 900 * rnd() });
+      }
+      for (let b of map.bubs) {
+        if (b.t + b.ttl < t) {
+          map.bubs.splice(map.bubs.indexOf(b), 1);
+        }
+      }
+    },
+    onStart() {
+      map.bubs = [];
+    },
+    onEnd() { setMap('mountain'); },
+    music: music.pixie,
+  },
 
   mountain: {},
 
@@ -770,7 +802,7 @@ let startTime;
 let t;
 let stairState;
 function animate(timestamp) {
-	requestAnimationFrame(animate);
+  requestAnimationFrame(animate);
   if (startTime === undefined) { startTime = timestamp; }
   const dt = min(100, timestamp - startTime - t || 0);
   t = timestamp - startTime;

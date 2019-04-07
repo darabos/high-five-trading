@@ -625,7 +625,7 @@ const maps = {
         }
       }
     },
-    onEnd() { setMap(options.sound ? 'music' : 'hfTest'); },
+    onEnd() { setMap(options.sound ? 'music' : 'pumping'); },
     music: music.pixie,
   },
 
@@ -656,12 +656,13 @@ const maps = {
     },
     onEnd() {
       Howler.masterGain.disconnect(map.analyser);
-      setMap('hfTest');
+      setMap('pumping');
     },
     music: music.cowboy,
   },
 
-  hfTest: {
+  pumping: {
+    pumpStrength: 10,
     size: [20, 20],
     capital: [1000, 3000],
     height: function(i, j, t) {
@@ -703,9 +704,35 @@ const maps = {
     music: music.pixie,
   },
 
-  mountain: {},
+  collapsible: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: function(i, j, t) {
+      if (i === map.tower[0] && j === map.tower[1]) {
+        return 2;
+      } else {
+        return 1.1 + tanh(hf.u[i][j]);
+      }
+    },
+    towerColor: 0xff0000,
+    update(dt) {
+      hf.update(dt);
+      if (player.i === map.tower[0] && player.j === map.tower[1]) {
+        hf.u[map.tower[0]][map.tower[1]] = 10;
+        stocks[map.tower[0]][map.tower[1]].material.color.set(0x105080);
+        map.tower = [floor(rnd() * 20), floor(rnd() * 20)];
+        stocks[map.tower[0]][map.tower[1]].material.color.set(map.towerColor);
+      }
+    },
+    onStart() {
+      map.tower = [floor(rnd() * 20), floor(rnd() * 20)];
+      stocks[map.tower[0]][map.tower[1]].material.color.set(map.towerColor);
+    },
+    onEnd() { setMap('mountain'); },
+    music: music.sticky,
+  },
 
-  collapsible: {},
+  mountain: {},
 
 };
 console.log(Object.keys(maps).length, 'maps');
@@ -925,8 +952,8 @@ function handleKeys(dt) {
   const speed = 150;
   keyBattery = min(speed + dt, keyBattery + dt);
   if (talking || player.win) { return; }
-  if (keys.space) {
-    hf.u[player.i][player.j] = -10;
+  if (keys.space && map.pumpStrength) {
+    hf.u[player.i][player.j] = -map.pumpStrength;
   }
   if (keyBattery < speed) { return; }
   if (!keys.left && !keys.right && !keys.up && !keys.down) { return; }

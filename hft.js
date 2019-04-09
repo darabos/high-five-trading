@@ -728,9 +728,56 @@ const maps = {
       map.tower = [floor(rnd() * 20), floor(rnd() * 20)];
       stocks[map.tower[0]][map.tower[1]].material.color.set(map.towerColor);
     },
-    onEnd() { setMap('mountain'); },
+    onEnd() { setMap('clock'); },
     music: music.sticky,
   },
+
+  clock: {
+    size: [29, 8],
+    capital: [1000, 10000],
+    height: function(i, j, t) {
+      return 0.1 + hf.u[i][j];
+    },
+    update(dt) {
+      const now = new Date();
+      const ascii = `
+       X    X  X   X    X XXX  X  XXX  X   X.
+      X X  XX X X X X  XX X   X X X X X X X X
+      X X X X   X  X  X X XX  X     X  X  XXX
+      X X   X  X    X XXX   X XXX  X  X X   X
+      X X   X X   X X   X   X X X X   X X X X
+       X    X XXX  X    X XX   X  X    X   X `;
+      const font = [];
+      for (let i = 0; i < 10; ++i) {
+        font.push([]);
+        for (let x = 0; x < 3; ++x) {
+          font[i].push([]);
+          for (let y = 0; y < 6; ++y) {
+            font[i][x][y] = ascii[7 + i * 4 + x + 46 * y] === 'X' ? 1 : 0;
+          }
+        }
+      }
+      function print(i, digit) {
+        for (let x = 0; x < 3; ++x) {
+          for (let y = 0; y < 6; ++y) {
+            hf.u[i + x + 1][y + 1] = font[digit][x][y];
+          }
+        }
+      }
+      print(0, floor(now.getHours() / 10));
+      print(4, now.getHours() % 10);
+      hf.u[9][3] = 1; hf.u[9][5] = 1;
+      print(10, floor(now.getMinutes() / 10));
+      print(14, now.getMinutes() % 10);
+      hf.u[19][3] = 1; hf.u[19][5] = 1;
+      print(20, floor(now.getSeconds() / 10));
+      print(24, now.getSeconds() % 10);
+    },
+    onEnd() { setMap('snake'); },
+    music: music.sticky,
+  },
+
+  snake: {},
 
   mountain: {},
 
@@ -925,6 +972,11 @@ function addBoom(i, j, gain) {
 
 const keys = {};
 function onKeyDown(evt) {
+  if (evt.key === 'Escape') {
+    setMap('demo');
+    document.getElementById('talk').remove();
+    talking = false;
+  }
   if (talking) {
     if (evt.key === ' ' || evt.key === 'Enter') {
       advanceTalk();

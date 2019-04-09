@@ -777,7 +777,33 @@ const maps = {
     music: music.sticky,
   },
 
-  snake: {},
+  snake: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: function(i, j, t) {
+      return 5 * (1.1 + tanh(hf.u[i][j] - t * 0.0001 - 1));
+    },
+    sx: 5, sy: 5,
+    delay: 0,
+    update(dt) {
+      map.delay += dt;
+      while (map.delay > 10) {
+        map.delay -= 10;
+        if (rnd() < 0.25 && map.sx < map.size[0] - 1) {
+          map.sx += 1;
+        } else if (rnd() < 0.33 && map.sx > 0) {
+          map.sx -= 1;
+        } else if (rnd() < 0.5 && map.sy < map.size[1] - 1) {
+          map.sy += 1;
+        } else if (map.sy > 0) {
+          map.sy -= 1;
+        }
+        hf.u[map.sx][map.sy] = t * 0.0001;
+      }
+    },
+    onEnd() { setMap('mountain'); },
+    music: music.cowboy,
+  },
 
   mountain: {},
 

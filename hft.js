@@ -205,6 +205,7 @@ const maps = {
       document.getElementById('capital-group').style.display = 'none';
       document.getElementById('menu-group').style.display = 'flex';
       document.getElementById('continue').style.display = options.map ? 'block' : 'none';
+      document.getElementById('skip').style.display = options.map ? 'block' : 'none';
     },
     onEnd() {
       document.getElementById('capital-group').style.display = '';
@@ -215,7 +216,7 @@ const maps = {
   Tutorial: {
     size: [2, 1],
     startPos: [0, 0],
-    capital: [1000, 3000],
+    capital: [1000, 5000],
     cameraPos: v3(10, 25, 100),
     height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t)),
     update() {
@@ -244,7 +245,7 @@ const maps = {
   'Gentle Waves': {
     size: [12, 1],
     startPos: [0, 0],
-    capital: [1000, 10000],
+    capital: [1000, 1000000],
     cameraPos: v3(10, 40, 160),
     height(i, j, t) {
       t = sin(0.001 * t)
@@ -257,8 +258,8 @@ const maps = {
 
   'A Drop in the Ocean': {
     size: [20, 20],
-    capital: [1000, 3000],
-    cameraPos: v3(-40, 120, 250),
+    capital: [1000, 10000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
       const phi = 0.005 * t - 0.5 * dist(i, j, 10, 10);
       return 1 + 0.2 * sin(phi);
@@ -270,7 +271,8 @@ const maps = {
 
   'Swirling Slowly': {
     size: [20, 20],
-    capital: [1000, 2000],
+    capital: [1000, 1000000],
+    cameraPos: v3(-50, 250, 350),
     height: (i, j, t) => {
       i -= 10; j -= 10;
       const r = sqrt(i * i + j * j);
@@ -285,7 +287,8 @@ const maps = {
 
   'The Frequency Spectrum': {
     size: [20, 20],
-    capital: [1000, 3000],
+    capital: [1000, 100000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
       const mask = max(0.1, tanh(10 - dist(i, j, 10, 10)));
       return mask * (1 + 0.3 * sin(0.0005 * t * (i + 10) + j));
@@ -297,7 +300,8 @@ const maps = {
 
   'Bulls & Bears': {
     size: [20, 20],
-    capital: [1000, 10000],
+    capital: [1000, 100000],
+    cameraPos: v3(-50, 250, 350),
     height: (i, j, t) => {
       i -= 9.5; j -= 9.5;
       t += 300000;
@@ -318,7 +322,8 @@ const maps = {
 
   'Sharks': {
     size: [20, 20],
-    capital: [1000, 3000],
+    capital: [1000, 10000000],
+    cameraPos: v3(-50, 250, 350),
     onStart: () => runScene('map7sharks'),
     onEnd() { setMap('Checkerboard'); },
     sharks: [],
@@ -363,7 +368,8 @@ const maps = {
 
   'Checkerboard': {
     size: [20, 20],
-    capital: [1000, 3000],
+    capital: [1000, 100000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
       const scale = 0.9;
       return 1 + 0.3 * sin(0.005 * t) * sin(10 + scale * i) * sin(10 + scale * j);
@@ -375,7 +381,8 @@ const maps = {
 
   'Ripples Around Us': {
     size: [20, 20],
-    capital: [1000, 10000],
+    capital: [1000, 100000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
       h = 1;
       for (let {x, y, p} of [{p: 0, x: 0, y: 0}, {p: 1, x: 19, y: 0}, {p: 2, x: 19, y: 19}, {p: 3, x: 0, y: 19}]) {
@@ -392,6 +399,7 @@ const maps = {
   'The Collapse': {
     size: [20, 20],
     capital: [1000, 10000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
       if (i === map.tower[0] && j === map.tower[1]) {
         return 2;
@@ -422,6 +430,7 @@ const maps = {
     pumpStrength: 10,
     size: [20, 20],
     capital: [1000, 3000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
       return 1.1 + tanh(hf.u[i][j]);
     },
@@ -433,7 +442,8 @@ const maps = {
 
   'Burrowing Investments': {
     size: [20, 20],
-    capital: [1000, 3000],
+    capital: [1000, 100000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
       return 1.1 + 0.5 * tanh(hf.u[i][j]);
     },
@@ -472,14 +482,15 @@ const maps = {
       }
     },
     onStart() { runScene('map12didit'); },
-    onEnd() { setMap('A Whirlwind of Inflation'); },
+    onEnd() { setMap('A Whirlwind of Capital'); },
     music: music.cowboy,
   },
 
-  'A Whirlwind of Inflation': {
+  'A Whirlwind of Capital': {
     size: [20, 20],
     startPos: [19, 9],
     capital: [10, 1000000000],
+    cameraPos: v3(-50, 250, 350),
     height: (i, j, t) => {
       i -= 10; j -= 10;
       const r = sqrt(i * i + j * j);
@@ -493,7 +504,7 @@ const maps = {
 
   'Mount Everest': {
     size: [20, 20],
-    capital: [1000, 3000],
+    capital: [1000, 10000],
     cameraPos: v3(-100, 250, 400),
     // Height map from http://terrain.party/api/export?name=everest&box=86.985352,28.005234,86.863257,27.897436
     h: [
@@ -563,6 +574,7 @@ const maps = {
   'Shanghai Stock Exchange': {
     size: [20, 20],
     capital: [1000, 10000],
+    cameraPos: v3(-50, 250, 350),
     height: (i, j, t) => {
       i -= 9.5; j -= 9.5;
       t += 100000;
@@ -583,6 +595,7 @@ const maps = {
   'Interlaced Futures': {
     size: [20, 20],
     capital: [1000, 10000],
+    cameraPos: v3(-50, 250, 350),
     height: (i, j, t) => {
       const s = floor(j / 2) % 2 * 2 - 1;
       const p = s * (i - 9.5);
@@ -595,7 +608,8 @@ const maps = {
 
   'Lissajous Trading': {
     size: [20, 20],
-    capital: [1000, 10000],
+    capital: [1000, 100000],
+    cameraPos: v3(-50, 250, 350),
     height: (i, j, t) => {
       i -= 9.5; j -= 9.5;
       let h = 0;
@@ -616,6 +630,7 @@ const maps = {
   'Throw Your Weight Around': {
     size: [20, 20],
     capital: [1000, 10000],
+    cameraPos: v3(-50, 250, 350),
     tilt: { x: 0, y: 0, vx: 0, vy: 0 },
     height: (i, j, t) => {
       i -= 9.5; j -= 9.5;
@@ -647,6 +662,7 @@ const maps = {
   'Rising Bubbles': {
     size: [20, 20],
     capital: [1000, 10000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
       let h = 0;
       for (let b of map.bubs) {
@@ -696,6 +712,7 @@ const maps = {
   'Surfing Brokers': {
     size: [20, 20],
     capital: [1000, 10000],
+    cameraPos: v3(-50, 250, 350),
     height: (i, j, t) => {
       i -= 9.5; j -= 9.5;
       let h = 0;
@@ -715,7 +732,8 @@ const maps = {
 
   'Slithering Bankers': {
     size: [20, 20],
-    capital: [1000, 10000],
+    capital: [1000, 50000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
       return 5 * (1.1 + tanh(hf.u[i][j] - t * 0.0001 - 1));
     },
@@ -778,6 +796,7 @@ const maps = {
   'Flashes of the Future': {
     size: [20, 20],
     capital: [1000, 10000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
       return 1 + hf.u[i][j];
     },
@@ -816,9 +835,10 @@ const maps = {
 
   'It Is Time': {
     size: [29, 8],
-    capital: [1000, 10000],
+    capital: [1000, 1000000],
+    cameraPos: v3(-50, 250, 350),
     height: function(i, j, t) {
-      return 0.1 + hf.u[i][j];
+      return 0.2 + hf.u[i][j];
     },
     update(dt) {
       const now = new Date();
@@ -912,17 +932,17 @@ const maps = {
         }
       }
       map.mask = mask;
+      runScene('map23');
     },
     playerWeight: 1,
     update(dt) { hf.update(dt); },
     music: music.sticky,
-    onStart() { runScene('map23'); },
     onEnd() { setMap('The Castle'); },
   },
 
   'The Castle': {
     stockWidth: 9,
-    cameraPos: v3(-120, 150, 200),
+    cameraPos: v3(-120, 250, 300),
     size: [19, 19],
     capital: [1000, 2000],
     startPos: [0, 9],
@@ -975,11 +995,13 @@ const maps = {
           }
         }
       }
+      runScene('map24');
     },
-    onStart() { runScene('map24'); },
     onEnd() {
-      setMap('demo');
-      showCredits();
+      runScene('epilogue', () => {
+        setMap('demo');
+        showCredits();
+      });
     },
     music: music.pixie,
   },
@@ -1031,6 +1053,9 @@ function setMap(name) {
   if (name !== 'demo') {
     options.map = name;
     saveOptions();
+    document.getElementById('map-name').textContent = name;
+  } else {
+    document.getElementById('map-name').textContent = '';
   }
   map = maps[name];
   for (let row of stocks) {
@@ -1060,12 +1085,11 @@ function setMap(name) {
     hf.u.push(u);
     hf.v.push(v);
   }
-  player.buyPrice = map.height(player.i, player.j, t);
-  player.stocks = floor(map.capital[0] / player.buyPrice);
-
   if (map.onStart) {
     map.onStart();
   }
+  player.buyPrice = map.height(player.i, player.j, t);
+  player.stocks = floor(map.capital[0] / player.buyPrice);
   player.lookAt = ij2vec(player.i, player.j);
   player.obj.position.copy(player.lookAt);
   player.lookAt.y += 10;
@@ -1095,6 +1119,7 @@ function animate(timestamp) {
   if (player.win) {
     pt.x -= 10;
     if (t - player.win > 1000) {
+      player.win = false;
       map.onEnd();
     }
   }
@@ -1230,7 +1255,7 @@ function handleKeys(dt) {
     player.stocks = Math.max(10, floor(h0 * player.stocks / h1));
     player.buyPrice = h1;
   } else if (keys.left && map.capital[1] <= player.capital && player.i == 0 &&
-    player.j < floor(map.size[1] / 2 + 2) && floor(map.size[1] / 2 - 2) < player.j) {
+    player.j < floor(map.size[1] / 2 + 2) && floor(map.size[1] / 2 - 2) < player.j && options.map !== 'demo') {
     player.win = t;
   }
 }
@@ -1286,13 +1311,18 @@ function onTouchEnd(e) {
   }
 }
 
+document.body.insertAdjacentHTML('beforeend', `
+<div id="map-name" style="
+    position: absolute; top: 0; width: 100vw; text-align: center; margin: 5vh;
+    color: white;  font: 5vh Audiowide; text-shadow: 0 0 0.5vh black;">
+</div>`);
 
 document.body.insertAdjacentHTML('beforeend', `
 <div id="capital-group">
   <div id="capital-string" style="
     position: absolute; top: 0; right: 1vh;
     padding: 2vh 0; color: white;
-    font: 4vh monospace;"></div>
+    font: 4vh monospace; text-shadow: 0 0 0.5vh black;"></div>
   <div style="border: 0.2vh solid white; position: absolute; bottom: 1vh; right: 1vh;
               width: 5vh; height: 90vh; box-sizing: border-box;">
     <div id="capital" style="background: white; position: absolute; bottom: 0; width: 100%;">
@@ -1339,6 +1369,7 @@ document.body.insertAdjacentHTML('beforeend', `
   <div id="menu" style="display: inline-block; font: 5vh Audiowide, sans-serif;">
     <style>#menu div { cursor: pointer; margin: 1vh; } #menu div:hover { color: #fff249; }</style>
     <div id="continue" onclick="continueGame()">Continue</div>
+    <div id="skip" onclick="skipMap()">Skip this level</div>
     <div onclick="newGame()">New game</div>
     <div id="sound" onclick="setSound(!options.sound)">☐ Sound</div>
     <div id="bloom" onclick="setBloom(!options.bloom)">☑ Bloom</div>
@@ -1348,6 +1379,11 @@ document.body.insertAdjacentHTML('beforeend', `
 function continueGame() {
   map.onEnd();
   setMap(options.map);
+}
+function skipMap() {
+  map.onEnd();
+  setMap(options.map);
+  map.onEnd();
 }
 function newGame() {
   map.onEnd();
@@ -1613,7 +1649,7 @@ const script = {
 
   map12didit: [
 ['R', 'fiona-laugh', "I did it!"],
-['L', 'angelica-serious', "Congratulations, Ms Fiona Five."],
+['L', 'angelica-serious', "Congratulations, Miss Fiona Five."],
 ['L', 'angelica-serious', "The SEC recognizes your achievement."],
 ['R', 'fiona-scared', "Who are you, and what have you done with my cat!"],
 ['L', 'cat-up.jpg', "Meow?"],
@@ -1733,7 +1769,7 @@ const script = {
 ['R', 'fiona-say', "Okay, let's knock this Conglomerate down. How do we do that?"],
 ['L', 'dolores-say', "It will not be easy."],
 ['L', 'dolores-say', "We have to pass through a number of stock exchanges to reach the Conglomerate headquarters."],
-['R', 'fiona-say', "Is that why we came to Khartoum?"],
+['R', 'fiona-say', "Is that why we came to Busan?"],
 ['L', 'dolores-say', "Yes. This stock exchange is experiencing a series of financial bubbles."],
 ['L', 'dolores-smile', "Take advantage, and let's be on our way!"],
   ],
@@ -1831,14 +1867,14 @@ const script = {
 ['L', 'angelica-angry', "Yes, of course, it's because I loved her!"],
 ['R', 'fiona-smile', "Do I have a voice recording for you."],
 [null, null, "Bzzt."],
-['R', 'fiona-smile', "Hello computer."],
-['R', 'fiona-say', "Can I talk to your programmer please?"],
-['L', 'conglomerate-calm', "I've crushed my programmer."],
-['L', 'conglomerate-shout', "And now I will crush you!"],
+['R', 'fiona-smile', "<i>Hello computer.</i>"],
+['R', 'fiona-say', "<i>Can I talk to your programmer please?</i>"],
+['L', 'conglomerate-calm', "<i>I've crushed my programmer.</i>"],
+['L', 'conglomerate-shout', "<i>And now I will crush you!</i>"],
 [null, null, "Bzzt."],
-['L', 'conglomerate-calm', "I've crushed my programmer."],
+['L', 'conglomerate-calm', "<i>I've crushed my programmer.</i>"],
 [null, null, "Bzzt."],
-['L', 'conglomerate-calm', "I've crushed my programmer."],
+['L', 'conglomerate-calm', "<i>I've crushed my programmer.</i>"],
 [null, null, "Bzzt."],
 ['L', 'angelica-angry', "Stop!"],
 ['L', 'angelica-angry', "I get it already. Cor blimey!"],

@@ -888,6 +888,44 @@ const maps = {
     music: music.reusenoise,
   },
 
+  prediction: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: function(i, j, t) {
+      return 1 + hf.u[i][j];
+    },
+    moves: [],
+    update(dt) {
+      if (rnd() > pow(Math.E, -0.005 * dt)) {
+        const i = floor(20 * rnd()); const j = floor(20 * rnd());
+        if (i !== player.i || j !== player.j) {
+          map.moves.push({i, j, t });
+        }
+      }
+      for (let i = 0; i < map.size[0]; ++i) {
+        for (let j = 0; j < map.size[1]; ++j) {
+          hf.u[i][j] *= pow(0.999, dt);
+        }
+      }
+      for (let m of map.moves) {
+        stocks[m.i][m.j].material.color.set(0x206010);
+        stocks[m.i][m.j].material.emissive.set(0x206010);
+        const delay = 1000;
+        const growth = 500;
+        if (m.t + delay < t) {
+          stocks[m.i][m.j].material.color.set(0x105080);
+          stocks[m.i][m.j].material.emissive.set(0x105080);
+          hf.u[m.i][m.j] = min(growth, t - m.t - delay) / growth;
+        }
+        if (m.t + delay + growth < t) {
+          map.moves.splice(map.moves.indexOf(m), 1);
+        }
+      }
+    },
+    onEnd() { setMap('bubbles'); },
+    music: music.pixie,
+  },
+
 };
 console.log(Object.keys(maps).length, 'maps');
 
@@ -946,8 +984,6 @@ function setMap(name) {
   stairs = addStairs();
   player.i = map.startPos ? map.startPos[0] : floor(map.size[0] / 2);
   player.j = map.startPos ? map.startPos[1] : floor(map.size[1] / 2);
-  player.buyPrice = map.height(player.i, player.j, t);
-  player.stocks = floor(map.capital[0] / player.buyPrice);
   player.win = false;
   stairState = 0;
 
@@ -963,6 +999,8 @@ function setMap(name) {
     hf.u.push(u);
     hf.v.push(v);
   }
+  player.buyPrice = map.height(player.i, player.j, t);
+  player.stocks = floor(map.capital[0] / player.buyPrice);
 
   if (map.onStart) {
     map.onStart();

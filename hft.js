@@ -884,7 +884,23 @@ const maps = {
         }
       }
     },
-    onEnd() { setMap('mountain'); },
+    onEnd() { setMap('aztec'); },
+    music: music.reusenoise,
+  },
+
+  aztec: {
+    size: [10, 10],
+    capital: [1000, 10000],
+    cameraPos: v3(-80, 300, 120),
+    height: function(i, j, t) {
+      i -= 4.5; j -= 4.5;
+      h = 0.5;
+      for (let x = 5; x > max(abs(i), abs(j)); --x) {
+        h += 1 + sin(0.001 * (2 - x) * t);
+      }
+      return h;
+    },
+    onEnd() { setMap('prediction'); },
     music: music.reusenoise,
   },
 

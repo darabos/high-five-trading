@@ -807,7 +807,7 @@ const maps = {
 
   mountain: {
     size: [20, 20],
-    capital: [1000, 10000],
+    capital: [1000, 3000],
     cameraPos: v3(-100, 250, 400),
     // Height map from http://terrain.party/api/export?name=everest&box=86.985352,28.005234,86.863257,27.897436
     h: [
@@ -831,18 +831,29 @@ const maps = {
     [5710, 5382, 5204, 5520, 6064, 6302, 6378, 6609, 8161, 11547, 13580, 14468, 11780, 8590, 8731, 11766, 16709, 23994, 24019, 20951],
     [2519, 2490, 3716, 5114, 5593, 5825, 6201, 6519, 7213, 7967, 8687, 9973, 9097, 7821, 9782, 12973, 21033, 24063, 20966, 20519],
     [1340, 2648, 3667, 4462, 5268, 5498, 6057, 6414, 6342, 6130, 6570, 6848, 6974, 7457, 10210, 12107, 18332, 24925, 23692, 21670]],
-    bx: 2, by: 18, vx: 0, vy: 0,
+    bx: 12, by: 8, vx: 0, vy: 0,
     startPos: [5, 18],
     height: function(i, j, t) {
       const d = dist2(i, j, map.bx, map.by);
       return map.h[j][i] * 0.0001 + 2 * pow(2, -d);
     },
     update(dt) {
+      const mode = floor(t / 1000) % 2;
       const dir = normdir(player, { i: map.bx, j: map.by });
-      map.vx += 0.005 * dt * min(1, max(-1, 1 / dir.d / dir.d)) * dir.i;
-      map.vy += 0.005 * dt * min(1, max(-1, 1 / dir.d / dir.d)) * dir.j;
-      map.vx *= pow(0.9999, dt);
-      map.vy *= pow(0.9999, dt);
+      if (mode) {
+        if (dir.d < 4) {
+          if (dir.d < 2) { dir.d = 2; }
+          map.vx += 0.2 * dt * dir.i / dir.d;
+          map.vy += 0.2 * dt * dir.j / dir.d;
+        }
+      } else {
+        const sx = map.h[floor(map.by + 0.5)][floor(map.bx)] - map.h[floor(map.by + 0.5)][floor(map.bx + 1)];
+        const sy = map.h[floor(map.by)][floor(map.bx + 0.5)] - map.h[floor(map.by + 1)][floor(map.bx + 0.5)];
+        map.vx += 0.000001 * dt * sx;
+        map.vy += 0.000001 * dt * sy;
+      }
+      map.vx *= pow(0.999, dt);
+      map.vy *= pow(0.999, dt);
       map.bx += 0.001 * dt * map.vx;
       map.by += 0.001 * dt * map.vy;
       if (map.bx < 2) { map.bx = 4 - map.bx; map.vx *= -1; }
@@ -851,7 +862,7 @@ const maps = {
       if (map.by > 17) { map.by = 34 - map.by; map.vy *= -1; }
       for (let i = 0; i < map.size[0]; ++i) {
         for (let j = 0; j < map.size[1]; ++j) {
-          const d = max(1, dist2(i, j, map.bx, map.by));
+          const d = (mode ? 2 : 1) * max(1, dist2(i, j, map.bx, map.by));
           stocks[i][j].material.emissive.set(0);
           stocks[i][j].material.color.set(0x2070b0);
           stocks[i][j].material.color.multiplyScalar(pow(3, 1 / d));

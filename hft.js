@@ -6,7 +6,7 @@ scene.fog = new THREE.Fog(scene.background, 1, 3000);
 const fov = 60 * window.innerHeight / window.innerWidth;
 const camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 5000);
 camera.position.set(-90, 250, 350);
-camera.lookAt(0, 0, 0);
+camera.lookAt(0, 10, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -188,7 +188,7 @@ const maps = {
 
   demo: {
     size: [30, 30],
-    capital: [1000, 2000],
+    capital: [1000, 200000],
     dust: 1000,
     height: (i, j, t) => {
       i -= 15; j -= 15;
@@ -204,6 +204,7 @@ const maps = {
     onStart() {
       document.getElementById('capital-group').style.display = 'none';
       document.getElementById('menu-group').style.display = 'flex';
+      document.getElementById('continue').style.display = options.map ? 'block' : 'none';
     },
     onEnd() {
       document.getElementById('capital-group').style.display = '';
@@ -211,32 +212,50 @@ const maps = {
     },
   },
 
-  tutorial: {
+  Tutorial: {
     size: [2, 1],
     startPos: [0, 0],
-    capital: [1000, 2000],
+    capital: [1000, 3000],
     cameraPos: v3(10, 25, 100),
     height: (i, j, t) => i === 0 ? 1 : (1 + 0.5 * sin(0.002 * t)),
+    update() {
+      if (player.i === 1 && !map.warned) {
+        runScene('tutorialMovingBack');
+        map.warned = true;
+      }
+      if (player.i === 0 && player.capital < map.capital[0] && !map.oopsed) {
+        runScene('tutorialOops');
+        map.oopsed = true;
+      }
+      if (player.i === 0 && player.capital > map.capital[0] && !map.profited) {
+        runScene('tutorialMoney');
+        map.profited = true;
+      }
+      if (player.i === 0 && player.capital > map.capital[1] && !map.done) {
+        runScene('tutorialDone');
+        map.done = true;
+      }
+    },
     onStart() { runScene('tutorial'); },
-    onEnd() { runScene('tutorialDone', () => setMap('linear')) },
+    onEnd() { setMap('Gentle Waves'); },
     music: music.across,
   },
 
-  linear: {
+  'Gentle Waves': {
     size: [12, 1],
     startPos: [0, 0],
-    capital: [1000, 2000],
+    capital: [1000, 10000],
     cameraPos: v3(10, 40, 160),
     height(i, j, t) {
       t = sin(0.001 * t)
       return 1 + 0.5 * sin(4 * t + i + 2);
     },
     onStart() { runScene('map2'); },
-    onEnd() { setMap('sineRipples'); },
+    onEnd() { setMap('A Drop in the Ocean'); },
     music: music.pixie,
   },
 
-  sineRipples: {
+  'A Drop in the Ocean': {
     size: [20, 20],
     capital: [1000, 3000],
     cameraPos: v3(-40, 120, 250),
@@ -245,92 +264,11 @@ const maps = {
       return 1 + 0.2 * sin(phi);
     },
     onStart: () => runScene('map3'),
-    onEnd() { setMap('checkerSine'); },
+    onEnd() { setMap('Swirling Slowly'); },
     music: music.funky,
   },
 
-  checkerSine: {
-    size: [20, 20],
-    capital: [1000, 3000],
-    height: function(i, j, t) {
-      const scale = 0.9;
-      return 1 + 0.3 * sin(0.005 * t) * sin(10 + scale * i) * sin(10 + scale * j);
-    },
-    onEnd() { setMap('frequencies'); },
-    music: music.urbana,
-  },
-
-  frequencies: {
-    size: [20, 20],
-    capital: [1000, 3000],
-    height: function(i, j, t) {
-      const mask = max(0.1, tanh(10 - dist(i, j, 10, 10)));
-      return mask * (1 + 0.3 * sin(0.0005 * t * (i + 10) + j));
-    },
-    onEnd() { setMap('cornerRipples'); },
-    music: music.sticky,
-  },
-
-  cornerRipples: {
-    size: [20, 20],
-    capital: [1000, 10000],
-    height: function(i, j, t) {
-      h = 1;
-      for (let {x, y, p} of [{p: 0, x: 0, y: 0}, {p: 1, x: 19, y: 0}, {p: 2, x: 19, y: 19}, {p: 3, x: 0, y: 19}]) {
-        const d = dist(i, j, x, y);
-        h += sin(0.001 * t + p * Math.PI / 4) * pow(1.01, -d * d) * sin(0.01 * t - d);
-      }
-      return max(0.5, h);
-    },
-    onEnd() { setMap('scribbles'); },
-    music: music.urbana,
-  },
-
-  scribbles: {
-    size: [20, 20],
-    capital: [1000, 3000],
-    height: function(i, j, t) {
-      return 1.1 + 0.5 * tanh(hf.u[i][j]);
-    },
-    px: 5, py: 5, nx: 15, ny: 15,
-    delay: 0,
-    update(dt) {
-      map.delay += dt;
-      while (map.delay > 10) {
-        map.delay -= 10;
-        if (rnd() < 0.25 && map.px < map.size[0] - 1) {
-          map.px += 1;
-        } else if (rnd() < 0.33 && map.px > 0) {
-          map.px -= 1;
-        } else if (rnd() < 0.5 && map.py < map.size[1] - 1) {
-          map.py += 1;
-        } else if (map.py > 0) {
-          map.py -= 1;
-        }
-        if (rnd() < 0.25 && map.nx < map.size[0] - 1) {
-          map.nx += 1;
-        } else if (rnd() < 0.33 && map.nx > 0) {
-          map.nx -= 1;
-        } else if (rnd() < 0.5 && map.ny < map.size[1] - 1) {
-          map.ny += 1;
-        } else if (map.ny > 0) {
-          map.ny -= 1;
-        }
-        hf.v[map.px][map.py] = 1;
-        hf.v[map.nx][map.ny] = -1;
-        for (let i = 0; i < map.size[0]; ++i) {
-          for (let j = 0; j < map.size[1]; ++j) {
-            hf.u[i][j] += hf.v[i][j] * 0.005 * dt;
-            hf.u[i][j] = max(-10, min(10, hf.u[i][j]));
-          }
-        }
-      }
-    },
-    onEnd() { setMap('slow2Swirl'); },
-    music: music.cowboy,
-  },
-
-  slow2Swirl: {
+  'Swirling Slowly': {
     size: [20, 20],
     capital: [1000, 2000],
     height: (i, j, t) => {
@@ -340,29 +278,49 @@ const maps = {
       const attenuation = pow(2, -0.02 * r * r);
       return sin(phi) * attenuation + 1.1;
     },
-    onEnd() { setMap('fast3Swirl'); },
+    onStart: () => runScene('map4'),
+    onEnd() { setMap('The Frequency Spectrum'); },
     music: music.across,
   },
 
-  fast3Swirl: {
-    size: [20, 20],
-    startPos: [19, 9],
-    capital: [10, 1000000000],
-    height: (i, j, t) => {
-      i -= 10; j -= 10;
-      const r = sqrt(i * i + j * j);
-      const phi = 3 * atan2(i, j) - t * 0.002 + 0.5 * r;
-      return sin(phi) + 1.1;
-    },
-    onEnd() { setMap('sharks'); },
-    music: music.organometron,
-  },
-
-  sharks: {
+  'The Frequency Spectrum': {
     size: [20, 20],
     capital: [1000, 3000],
-    onStart: () => runScene('epilogue'),
-    onEnd() { setMap('tilt'); },
+    height: function(i, j, t) {
+      const mask = max(0.1, tanh(10 - dist(i, j, 10, 10)));
+      return mask * (1 + 0.3 * sin(0.0005 * t * (i + 10) + j));
+    },
+    onStart: () => runScene('map5'),
+    onEnd() { setMap('Bulls & Bears'); },
+    music: music.sticky,
+  },
+
+  'Bulls & Bears': {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      i -= 9.5; j -= 9.5;
+      t += 300000;
+      let h = 0;
+      for (let k = 1; k < 4; ++k) {
+        const dx = 8 * sin(0.0005 * t + 0.0001 * t * k);
+        const dy = 8 * cos(0.0005 * t + 0.0001 * t * sqrt(k));
+        const d = dist(i, j, dx, dy);
+        const s = k % 2 * 2 - 1;
+        h += s * pow(2, -0.3 * d * d);
+      }
+      return 2.1 + 2 * tanh(h);
+    },
+    onStart: () => runScene('map6dimples'),
+    onEnd() { setMap('Sharks'); },
+    music: music.cowboy,
+  },
+
+  'Sharks': {
+    size: [20, 20],
+    capital: [1000, 3000],
+    onStart: () => runScene('map7sharks'),
+    onEnd() { setMap('Checkerboard'); },
     sharks: [],
     update(dt) {
       while (map.sharks.length < 2) {
@@ -403,323 +361,35 @@ const maps = {
     music: music.pixie,
   },
 
-  tilt: {
-    size: [20, 20],
-    capital: [1000, 10000],
-    tilt: { x: 0, y: 0, vx: 0, vy: 0 },
-    height: (i, j, t) => {
-      i -= 9.5; j -= 9.5;
-      return 2.1 + i * map.tilt.x + j * map.tilt.y;
-    },
-    update(dt) {
-      map.tilt.x += 0.001 * dt * map.tilt.vx;
-      map.tilt.y += 0.001 * dt * map.tilt.vy;
-      const d = sqrt(map.tilt.x * map.tilt.x + map.tilt.y * map.tilt.y) * 10 / sqrt(2);
-      if (d > 1) {
-        map.tilt.x /= d;
-        map.tilt.y /= d;
-      }
-      const t = { x: 9.5 - player.i, y: 9.5 - player.j };
-      t.d = sqrt(t.x * t.x + t.y * t.y) * 10 / sqrt(2);
-      if (t.d > 0.5) {
-        t.x /= 2 * t.d;
-        t.y /= 2 * t.d;
-      }
-      const drag = pow(0.9999, dt);
-      map.tilt.vx = drag * map.tilt.vx + 0.002 * dt * (t.x - map.tilt.x);
-      map.tilt.vy = drag * map.tilt.vy + 0.002 * dt * (t.y - map.tilt.y);
-    },
-    onEnd() { setMap('comb'); },
-    music: music.organometron,
-  },
-
-  comb: {
-    size: [20, 20],
-    capital: [1000, 10000],
-    height: (i, j, t) => {
-      const s = floor(j / 2) % 2 * 2 - 1;
-      const p = s * (i - 9.5);
-      return 1 + 0.5 * (1 + sin((0.01 * t + 0.2 * j + 0.5 * p))) * (1 + tanh( 0.2 * p));
-    },
-    onEnd() { setMap('maze'); },
-    music: music.cowboy,
-  },
-
-  maze: {
-    size: [19, 19],
-    startPos: [18, 9],
-    cameraPos: v3(-120, 200, 300),
-    capital: [1000, 3000],
-    height: function(i, j, t) {
-      const m = map.mask[i][j];
-      if (m === 0) {
-        return 1.1 + tanh(hf.u[i][j]);
-      } else if (m === 1) {
-        return 2;
-      } else {
-        return 2 + sin(0.003 * t);
-      }
-    },
-    onStart() {
-      const mask = [];
-      for (let i = 0; i < map.size[0]; ++i) {
-        const r = [];
-        for (let j = 0; j < map.size[1]; ++j) {
-          r.push(0);
-        }
-        mask.push(r);
-      }
-      let x = 18;
-      let y = 18;
-      mask[x][y] = 2;
-      while (x !== 0 || y !== 8) {
-        const r = rnd();
-        if (r < 0.25 && x < 18 && (mask[x + 1][y] || !mask[x + 2][y])) {
-          x += 1;
-          mask[x][y] = 1;
-          x += 1;
-          mask[x][y] = mask[x][y] || 1;
-        } else if (r < 0.5 && y < 18 && (mask[x][y + 1] || !mask[x][y + 2])) {
-          y += 1;
-          mask[x][y] = 1;
-          y += 1;
-          mask[x][y] = mask[x][y] || 1;
-        } else if (r < 0.75 && x > 0 && (mask[x - 1][y] || !mask[x - 2][y])) {
-          x -= 1;
-          mask[x][y] = 1;
-          x -= 1;
-          mask[x][y] = mask[x][y] || 1;
-        } else if (y > 0 && (mask[x][y - 1] || !mask[x][y - 2])) {
-          y -= 1;
-          mask[x][y] = 1;
-          y -= 1;
-          mask[x][y] = mask[x][y] || 1;
-        }
-      }
-      map.mask = mask;
-    },
-    playerWeight: 1,
-    update(dt) { hf.update(dt); },
-    music: music.sticky,
-    onEnd() { setMap('lissajous'); },
-  },
-
-  lissajous: {
-    size: [20, 20],
-    capital: [1000, 10000],
-    height: (i, j, t) => {
-      i -= 9.5; j -= 9.5;
-      let h = 0;
-      for (let k = 0; k < 10; ++k) {
-        const dx = 8 * sin(0.001 * t + k * Math.PI / 5);
-        const dy = 8 * cos(0.00123 * t + k * Math.PI / 5);
-        const d = dist(i, j, dx, dy);
-        const s = k % 2 * 2 - 1;
-        h += s * pow(2, -0.2 * d * d);
-      }
-      return 1.1 + tanh(h);
-    },
-    onEnd() { setMap('chaoticWaves'); },
-    music: music.cowboy,
-  },
-
-  chaoticWaves: {
-    size: [20, 20],
-    capital: [1000, 10000],
-    height: (i, j, t) => {
-      i -= 9.5; j -= 9.5;
-      let h = 0;
-      for (let k = 0; k < 20; ++k) {
-        const dx = 8 * sin(0.001 * (t + 1000 * k));
-        const dy = 8 * cos(0.00123 * (t + 1000 * k));
-        const d = dist(i, j, dx, dy);
-        const s = k % 2 * 2 - 1;
-        h += s * pow(2, -0.2 * d * d);
-      }
-      return 1.1 + tanh(h);
-    },
-    onEnd() { setMap('dimples'); },
-    music: music.cowboy,
-  },
-
-  dimples: {
-    size: [20, 20],
-    capital: [1000, 10000],
-    height: (i, j, t) => {
-      i -= 9.5; j -= 9.5;
-      t += 300000;
-      let h = 0;
-      for (let k = 1; k < 4; ++k) {
-        const dx = 8 * sin(0.0005 * t + 0.0001 * t * k);
-        const dy = 8 * cos(0.0005 * t + 0.0001 * t * sqrt(k));
-        const d = dist(i, j, dx, dy);
-        const s = k % 2 * 2 - 1;
-        h += s * pow(2, -0.3 * d * d);
-      }
-      return 2.1 + 2 * tanh(h);
-    },
-    onEnd() { setMap('manyDimples'); },
-    music: music.cowboy,
-  },
-
-  manyDimples: {
-    size: [20, 20],
-    capital: [1000, 10000],
-    height: (i, j, t) => {
-      i -= 9.5; j -= 9.5;
-      t += 100000;
-      let h = 0;
-      for (let k = 0; k < 8; ++k) {
-        const dx = 8 * sin(0.001 * t + 0.0001 * t * k);
-        const dy = 8 * cos(0.001 * t + 0.0001 * t * sqrt(k));
-        const d = dist(i, j, dx, dy);
-        const s = k % 2 * 2 - 1;
-        h += s * pow(2, -0.3 * d * d);
-      }
-      return 2.1 + 2 * tanh(h);
-    },
-    onEnd() { setMap('castle'); },
-    music: music.cowboy,
-  },
-
-  castle: {
-    stockWidth: 9,
-    cameraPos: v3(-120, 150, 200),
-    size: [19, 19],
-    capital: [1000, 2000],
-    startPos: [0, 9],
-    height: (i, j, t) => {
-      const s = map.str[j][i];
-      i -= 11;
-      j -= 9;
-      const r = sqrt(i * i + j * j);
-      const phi = 3 * atan2(i, j) - t * 0.002 + 0.5 * r;
-      let h = 0.03 * r * (1 + sin(phi));
-      const dt = t - (map.bellTime || t);
-      h *= 1 - pow(2, -0.000001 * dt * dt);
-      return s === '~' ? 0.5 : s === ' ' ? 1 : 2 + 0.5 * parseInt(s) + h;
-    },
-
-    update() {
-      if (player.i == 11 && player.j === 9 && !map.bellTime) {
-        map.bellTime = t;
-      }
-    },
-
-    onStart() {
-      map.str = `
-~~~~~~~~~~~~~~~~~~~
-~54545~~~~~~~54545~
-~43334323232343334~
-~53335111111153335~
-~43334323232343334~
-~54545       54545~
-~~313         313~~
-~~212  22233  212~~
-~~313  33344  313~~
-  212  44457  212~~
-~~313  33344  313~~
-~~212  22233  212~~
-~~313         313~~
-~54545       54545~
-~43334323232343334~
-~53335111111153335~
-~43334323232343334~
-~54545~~~~~~~54545~
-~~~~~~~~~~~~~~~~~~~
-`.trim().split('\n');
-      for (let i = 0; i < map.size[0]; ++i) {
-        for (let j = 0; j < map.size[1]; ++j) {
-          if (map.str[j][i] === ' ') {
-            stocks[i][j].material.color.set(0x204000);
-            stocks[i][j].material.emissive.set(0x204000);
-          } else if (map.str[j][i] !== '~') {
-            stocks[i][j].material.color.set(0x666666);
-            stocks[i][j].material.emissive.set(0);
-          }
-        }
-      }
-    },
-    onEnd() { setMap(options.sound ? 'music' : 'pumping'); },
-    music: music.pixie,
-  },
-
-  music: {
-    cameraPos: v3(-90, 300, 300),
-    size: [20, 20],
-    capital: [1000, 10000],
-    height: (i, j, t) => {
-      return 0.1 + 0.2 * map.freqs[j][i] / (j + 10);
-    },
-    update(dt) {
-      if (map.lastTime + 50 < t) {
-        map.freqs.unshift(map.freqs.splice(-1)[0]);
-        map.analyser.getByteFrequencyData(map.freqs[0]);
-        map.lastTime = t;
-      }
-    },
-    onStart() {
-      map.lastTime = t || 0;
-      map.analyser = Howler.ctx.createAnalyser();
-      map.analyser.fftSize = 64;
-      map.analyser.smoothingTimeConstant = 0;
-      Howler.masterGain.connect(map.analyser);
-      map.freqs = [];
-      for (let j = 0; j < map.size[1]; ++j) {
-        map.freqs.push(new Uint8Array(map.analyser.frequencyBinCount));
-      }
-    },
-    onEnd() {
-      Howler.masterGain.disconnect(map.analyser);
-      setMap('pumping');
-    },
-    music: music.cowboy,
-  },
-
-  pumping: {
-    pumpStrength: 10,
+  'Checkerboard': {
     size: [20, 20],
     capital: [1000, 3000],
     height: function(i, j, t) {
-      return 1.1 + tanh(hf.u[i][j]);
+      const scale = 0.9;
+      return 1 + 0.3 * sin(0.005 * t) * sin(10 + scale * i) * sin(10 + scale * j);
     },
-    update(dt) { hf.update(dt); },
-    onEnd() { setMap('bubbles'); },
-    music: music.reusenoise,
+    onStart: () => runScene('map8'),
+    onEnd() { setMap('Ripples Around Us'); },
+    music: music.urbana,
   },
 
-  bubbles: {
+  'Ripples Around Us': {
     size: [20, 20],
     capital: [1000, 10000],
     height: function(i, j, t) {
-      let h = 0;
-      for (let b of map.bubs) {
-        const d = dist(i, j, b.x, b.y);
-        const r = 0.002 * (t - b.t);
-        if (d < r) {
-          h = max(h, sqrt(r * r - d * d));
-        }
+      h = 1;
+      for (let {x, y, p} of [{p: 0, x: 0, y: 0}, {p: 1, x: 19, y: 0}, {p: 2, x: 19, y: 19}, {p: 3, x: 0, y: 19}]) {
+        const d = dist(i, j, x, y);
+        h += sin(0.001 * t + p * Math.PI / 4) * pow(1.01, -d * d) * sin(0.01 * t - d);
       }
-      return 1 + h;
+      return max(0.5, h);
     },
-    update(dt) {
-      if (map.bubs.length < 3 && rnd() > pow(Math.E, -0.001 * dt)) {
-        map.bubs.push({ x: 4 + floor(12 * rnd()), y: 4 + floor(12 * rnd()), t, ttl: 900 + 900 * rnd() });
-      }
-      for (let b of map.bubs) {
-        if (b.t + b.ttl < t) {
-          map.bubs.splice(map.bubs.indexOf(b), 1);
-        }
-      }
-    },
-    onStart() {
-      map.bubs = [];
-    },
-    onEnd() { setMap('collapsible'); },
-    music: music.pixie,
+    onStart: () => runScene('map9'),
+    onEnd() { setMap('The Collapse'); },
+    music: music.urbana,
   },
 
-  collapsible: {
+  'The Collapse': {
     size: [20, 20],
     capital: [1000, 10000],
     height: function(i, j, t) {
@@ -740,87 +410,88 @@ const maps = {
       }
     },
     onStart() {
+      runScene('map10'),
       map.tower = [floor(rnd() * 20), floor(rnd() * 20)];
       stocks[map.tower[0]][map.tower[1]].material.color.set(map.towerColor);
     },
-    onEnd() { setMap('clock'); },
+    onEnd() { setMap('Pumping Money'); },
     music: music.sticky,
   },
 
-  clock: {
-    size: [29, 8],
-    capital: [1000, 10000],
-    height: function(i, j, t) {
-      return 0.1 + hf.u[i][j];
-    },
-    update(dt) {
-      const now = new Date();
-      const ascii = `
-       X    X  X   X    X XXX  X  XXX  X   X.
-      X X  XX X X X X  XX X   X X X X X X X X
-      X X X X   X  X  X X XX  X     X  X  XXX
-      X X   X  X    X XXX   X XXX  X  X X   X
-      X X   X X   X X   X   X X X X   X X X X
-       X    X XXX  X    X XX   X  X    X   X `;
-      const font = [];
-      for (let i = 0; i < 10; ++i) {
-        font.push([]);
-        for (let x = 0; x < 3; ++x) {
-          font[i].push([]);
-          for (let y = 0; y < 6; ++y) {
-            font[i][x][y] = ascii[7 + i * 4 + x + 46 * y] === 'X' ? 1 : 0;
-          }
-        }
-      }
-      function print(i, digit) {
-        for (let x = 0; x < 3; ++x) {
-          for (let y = 0; y < 6; ++y) {
-            hf.u[i + x + 1][y + 1] = font[digit][x][y];
-          }
-        }
-      }
-      print(0, floor(now.getHours() / 10));
-      print(4, now.getHours() % 10);
-      hf.u[9][3] = 1; hf.u[9][5] = 1;
-      print(10, floor(now.getMinutes() / 10));
-      print(14, now.getMinutes() % 10);
-      hf.u[19][3] = 1; hf.u[19][5] = 1;
-      print(20, floor(now.getSeconds() / 10));
-      print(24, now.getSeconds() % 10);
-    },
-    onEnd() { setMap('snake'); },
-    music: music.sticky,
-  },
-
-  snake: {
+  'Pumping Money': {
+    pumpStrength: 10,
     size: [20, 20],
-    capital: [1000, 10000],
+    capital: [1000, 3000],
     height: function(i, j, t) {
-      return 5 * (1.1 + tanh(hf.u[i][j] - t * 0.0001 - 1));
+      return 1.1 + tanh(hf.u[i][j]);
     },
-    sx: 5, sy: 5,
+    update(dt) { hf.update(dt); },
+    onStart() { runScene('map11pnd'); },
+    onEnd() { setMap('Burrowing Investments'); },
+    music: music.reusenoise,
+  },
+
+  'Burrowing Investments': {
+    size: [20, 20],
+    capital: [1000, 3000],
+    height: function(i, j, t) {
+      return 1.1 + 0.5 * tanh(hf.u[i][j]);
+    },
+    px: 5, py: 5, nx: 15, ny: 15,
     delay: 0,
     update(dt) {
       map.delay += dt;
       while (map.delay > 10) {
         map.delay -= 10;
-        if (rnd() < 0.25 && map.sx < map.size[0] - 1) {
-          map.sx += 1;
-        } else if (rnd() < 0.33 && map.sx > 0) {
-          map.sx -= 1;
-        } else if (rnd() < 0.5 && map.sy < map.size[1] - 1) {
-          map.sy += 1;
-        } else if (map.sy > 0) {
-          map.sy -= 1;
+        if (rnd() < 0.25 && map.px < map.size[0] - 1) {
+          map.px += 1;
+        } else if (rnd() < 0.33 && map.px > 0) {
+          map.px -= 1;
+        } else if (rnd() < 0.5 && map.py < map.size[1] - 1) {
+          map.py += 1;
+        } else if (map.py > 0) {
+          map.py -= 1;
         }
-        hf.u[map.sx][map.sy] = t * 0.0001;
+        if (rnd() < 0.25 && map.nx < map.size[0] - 1) {
+          map.nx += 1;
+        } else if (rnd() < 0.33 && map.nx > 0) {
+          map.nx -= 1;
+        } else if (rnd() < 0.5 && map.ny < map.size[1] - 1) {
+          map.ny += 1;
+        } else if (map.ny > 0) {
+          map.ny -= 1;
+        }
+        hf.v[map.px][map.py] = 1;
+        hf.v[map.nx][map.ny] = -1;
+        for (let i = 0; i < map.size[0]; ++i) {
+          for (let j = 0; j < map.size[1]; ++j) {
+            hf.u[i][j] += hf.v[i][j] * 0.005 * dt;
+            hf.u[i][j] = max(-10, min(10, hf.u[i][j]));
+          }
+        }
       }
     },
-    onEnd() { setMap('mountain'); },
+    onStart() { runScene('map12didit'); },
+    onEnd() { setMap('A Whirlwind of Inflation'); },
     music: music.cowboy,
   },
 
-  mountain: {
+  'A Whirlwind of Inflation': {
+    size: [20, 20],
+    startPos: [19, 9],
+    capital: [10, 1000000000],
+    height: (i, j, t) => {
+      i -= 10; j -= 10;
+      const r = sqrt(i * i + j * j);
+      const phi = 3 * atan2(i, j) - t * 0.002 + 0.5 * r;
+      return sin(phi) + 1.1;
+    },
+    onStart() { runScene('map13'); },
+    onEnd() { setMap('Mount Everest'); },
+    music: music.organometron,
+  },
+
+  'Mount Everest': {
     size: [20, 20],
     capital: [1000, 3000],
     cameraPos: v3(-100, 250, 400),
@@ -884,11 +555,128 @@ const maps = {
         }
       }
     },
-    onEnd() { setMap('aztec'); },
+    onStart() { runScene('map14tibet'); },
+    onEnd() { runScene('map15reunion', () => setMap('Shanghai Stock Exchange')); },
     music: music.reusenoise,
   },
 
-  aztec: {
+  'Shanghai Stock Exchange': {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      i -= 9.5; j -= 9.5;
+      t += 100000;
+      let h = 0;
+      for (let k = 0; k < 8; ++k) {
+        const dx = 8 * sin(0.001 * t + 0.0001 * t * k);
+        const dy = 8 * cos(0.001 * t + 0.0001 * t * sqrt(k));
+        const d = dist(i, j, dx, dy);
+        const s = k % 2 * 2 - 1;
+        h += s * pow(2, -0.3 * d * d);
+      }
+      return 2.1 + 2 * tanh(h);
+    },
+    onEnd() { setMap('Interlaced Futures'); },
+    music: music.cowboy,
+  },
+
+  'Interlaced Futures': {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      const s = floor(j / 2) % 2 * 2 - 1;
+      const p = s * (i - 9.5);
+      return 1 + 0.5 * (1 + sin((0.01 * t + 0.2 * j + 0.5 * p))) * (1 + tanh( 0.2 * p));
+    },
+    onStart() { runScene('map16'); },
+    onEnd() { setMap('Lissajous Trading'); },
+    music: music.cowboy,
+  },
+
+  'Lissajous Trading': {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      i -= 9.5; j -= 9.5;
+      let h = 0;
+      for (let k = 0; k < 10; ++k) {
+        const dx = 8 * sin(0.001 * t + k * Math.PI / 5);
+        const dy = 8 * cos(0.00123 * t + k * Math.PI / 5);
+        const d = dist(i, j, dx, dy);
+        const s = k % 2 * 2 - 1;
+        h += s * pow(2, -0.2 * d * d);
+      }
+      return 1.1 + tanh(h);
+    },
+    onStart() { runScene('map17'); },
+    onEnd() { setMap('Throw Your Weight Around'); },
+    music: music.cowboy,
+  },
+
+  'Throw Your Weight Around': {
+    size: [20, 20],
+    capital: [1000, 10000],
+    tilt: { x: 0, y: 0, vx: 0, vy: 0 },
+    height: (i, j, t) => {
+      i -= 9.5; j -= 9.5;
+      return 2.1 + i * map.tilt.x + j * map.tilt.y;
+    },
+    update(dt) {
+      map.tilt.x += 0.001 * dt * map.tilt.vx;
+      map.tilt.y += 0.001 * dt * map.tilt.vy;
+      const d = sqrt(map.tilt.x * map.tilt.x + map.tilt.y * map.tilt.y) * 10 / sqrt(2);
+      if (d > 1) {
+        map.tilt.x /= d;
+        map.tilt.y /= d;
+      }
+      const t = { x: 9.5 - player.i, y: 9.5 - player.j };
+      t.d = sqrt(t.x * t.x + t.y * t.y) * 10 / sqrt(2);
+      if (t.d > 0.5) {
+        t.x /= 2 * t.d;
+        t.y /= 2 * t.d;
+      }
+      const drag = pow(0.9999, dt);
+      map.tilt.vx = drag * map.tilt.vx + 0.002 * dt * (t.x - map.tilt.x);
+      map.tilt.vy = drag * map.tilt.vy + 0.002 * dt * (t.y - map.tilt.y);
+    },
+    onStart() { runScene('map18'); },
+    onEnd() { setMap('Rising Bubbles'); },
+    music: music.organometron,
+  },
+
+  'Rising Bubbles': {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: function(i, j, t) {
+      let h = 0;
+      for (let b of map.bubs) {
+        const d = dist(i, j, b.x, b.y);
+        const r = 0.002 * (t - b.t);
+        if (d < r) {
+          h = max(h, sqrt(r * r - d * d));
+        }
+      }
+      return 1 + h;
+    },
+    update(dt) {
+      if (map.bubs.length < 3 && rnd() > pow(Math.E, -0.001 * dt)) {
+        map.bubs.push({ x: 4 + floor(12 * rnd()), y: 4 + floor(12 * rnd()), t, ttl: 900 + 900 * rnd() });
+      }
+      for (let b of map.bubs) {
+        if (b.t + b.ttl < t) {
+          map.bubs.splice(map.bubs.indexOf(b), 1);
+        }
+      }
+    },
+    onStart() {
+      runScene('map19theplan');
+      map.bubs = [];
+    },
+    onEnd() { setMap('The Empire'); },
+    music: music.pixie,
+  },
+
+  'The Empire': {
     size: [10, 10],
     capital: [1000, 10000],
     cameraPos: v3(-80, 300, 120),
@@ -900,11 +688,94 @@ const maps = {
       }
       return h;
     },
-    onEnd() { setMap('prediction'); },
+    onStart() { runScene('map19'); },
+    onEnd() { setMap('Surfing Brokers'); },
     music: music.reusenoise,
   },
 
-  prediction: {
+  'Surfing Brokers': {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      i -= 9.5; j -= 9.5;
+      let h = 0;
+      for (let k = 0; k < 20; ++k) {
+        const dx = 8 * sin(0.001 * (t + 1000 * k));
+        const dy = 8 * cos(0.00123 * (t + 1000 * k));
+        const d = dist(i, j, dx, dy);
+        const s = k % 2 * 2 - 1;
+        h += s * pow(2, -0.2 * d * d);
+      }
+      return 1.1 + tanh(h);
+    },
+    onStart() { runScene('map20'); },
+    onEnd() { setMap('Slithering Bankers'); },
+    music: music.cowboy,
+  },
+
+  'Slithering Bankers': {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: function(i, j, t) {
+      return 5 * (1.1 + tanh(hf.u[i][j] - t * 0.0001 - 1));
+    },
+    sx: 5, sy: 5,
+    delay: 0,
+    update(dt) {
+      map.delay += dt;
+      while (map.delay > 10) {
+        map.delay -= 10;
+        if (rnd() < 0.25 && map.sx < map.size[0] - 1) {
+          map.sx += 1;
+        } else if (rnd() < 0.33 && map.sx > 0) {
+          map.sx -= 1;
+        } else if (rnd() < 0.5 && map.sy < map.size[1] - 1) {
+          map.sy += 1;
+        } else if (map.sy > 0) {
+          map.sy -= 1;
+        }
+        hf.u[map.sx][map.sy] = t * 0.0001;
+      }
+    },
+    onStart() { runScene('map20mom'); },
+    onEnd() { setMap(options.sound ? 'Cowboy Glitch by Spinningmerkaba' : 'Flashes of the Future'); },
+    music: music.cowboy,
+  },
+
+  'Cowboy Glitch by Spinningmerkaba': {
+    cameraPos: v3(-90, 300, 300),
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: (i, j, t) => {
+      return 0.1 + 0.2 * map.freqs[j][i] / (j + 10);
+    },
+    update(dt) {
+      if (map.lastTime + 50 < t) {
+        map.freqs.unshift(map.freqs.splice(-1)[0]);
+        map.analyser.getByteFrequencyData(map.freqs[0]);
+        map.lastTime = t;
+      }
+    },
+    onStart() {
+      map.lastTime = t || 0;
+      map.analyser = Howler.ctx.createAnalyser();
+      map.analyser.fftSize = 64;
+      map.analyser.smoothingTimeConstant = 0;
+      Howler.masterGain.connect(map.analyser);
+      map.freqs = [];
+      for (let j = 0; j < map.size[1]; ++j) {
+        map.freqs.push(new Uint8Array(map.analyser.frequencyBinCount));
+      }
+      runScene('map18musicoptional');
+    },
+    onEnd() {
+      Howler.masterGain.disconnect(map.analyser);
+      setMap('Flashes of the Future');
+    },
+    music: music.cowboy,
+  },
+
+  'Flashes of the Future': {
     size: [20, 20],
     capital: [1000, 10000],
     height: function(i, j, t) {
@@ -938,12 +809,182 @@ const maps = {
         }
       }
     },
-    onEnd() { setMap('bubbles'); },
+    onStart() { runScene('map21'); },
+    onEnd() { setMap('It Is Time'); },
+    music: music.pixie,
+  },
+
+  'It Is Time': {
+    size: [29, 8],
+    capital: [1000, 10000],
+    height: function(i, j, t) {
+      return 0.1 + hf.u[i][j];
+    },
+    update(dt) {
+      const now = new Date();
+      const ascii = `
+       X    X  X   X    X XXX  X  XXX  X   X.
+      X X  XX X X X X  XX X   X X X X X X X X
+      X X X X   X  X  X X XX  X     X  X  XXX
+      X X   X  X    X XXX   X XXX  X  X X   X
+      X X   X X   X X   X   X X X X   X X X X
+       X    X XXX  X    X XX   X  X    X   X `;
+      const font = [];
+      for (let i = 0; i < 10; ++i) {
+        font.push([]);
+        for (let x = 0; x < 3; ++x) {
+          font[i].push([]);
+          for (let y = 0; y < 6; ++y) {
+            font[i][x][y] = ascii[7 + i * 4 + x + 46 * y] === 'X' ? 1 : 0;
+          }
+        }
+      }
+      function print(i, digit) {
+        for (let x = 0; x < 3; ++x) {
+          for (let y = 0; y < 6; ++y) {
+            hf.u[i + x + 1][y + 1] = font[digit][x][y];
+          }
+        }
+      }
+      print(0, floor(now.getHours() / 10));
+      print(4, now.getHours() % 10);
+      hf.u[9][3] = 1; hf.u[9][5] = 1;
+      print(10, floor(now.getMinutes() / 10));
+      print(14, now.getMinutes() % 10);
+      hf.u[19][3] = 1; hf.u[19][5] = 1;
+      print(20, floor(now.getSeconds() / 10));
+      print(24, now.getSeconds() % 10);
+    },
+    onStart() { runScene('map22'); },
+    onEnd() { setMap('Find a Way'); },
+    music: music.sticky,
+  },
+
+  'Find a Way': {
+    size: [19, 19],
+    startPos: [18, 9],
+    cameraPos: v3(-120, 200, 300),
+    capital: [1000, 3000],
+    height: function(i, j, t) {
+      const m = map.mask[i][j];
+      if (m === 0) {
+        return 1.1 + tanh(hf.u[i][j]);
+      } else if (m === 1) {
+        return 2;
+      } else {
+        return 2 + sin(0.003 * t);
+      }
+    },
+    onStart() {
+      const mask = [];
+      for (let i = 0; i < map.size[0]; ++i) {
+        const r = [];
+        for (let j = 0; j < map.size[1]; ++j) {
+          r.push(0);
+        }
+        mask.push(r);
+      }
+      let x = 18;
+      let y = 18;
+      mask[x][y] = 2;
+      while (x !== 0 || y !== 8) {
+        const r = rnd();
+        if (r < 0.25 && x < 18 && (mask[x + 1][y] || !mask[x + 2][y])) {
+          x += 1;
+          mask[x][y] = 1;
+          x += 1;
+          mask[x][y] = mask[x][y] || 1;
+        } else if (r < 0.5 && y < 18 && (mask[x][y + 1] || !mask[x][y + 2])) {
+          y += 1;
+          mask[x][y] = 1;
+          y += 1;
+          mask[x][y] = mask[x][y] || 1;
+        } else if (r < 0.75 && x > 0 && (mask[x - 1][y] || !mask[x - 2][y])) {
+          x -= 1;
+          mask[x][y] = 1;
+          x -= 1;
+          mask[x][y] = mask[x][y] || 1;
+        } else if (y > 0 && (mask[x][y - 1] || !mask[x][y - 2])) {
+          y -= 1;
+          mask[x][y] = 1;
+          y -= 1;
+          mask[x][y] = mask[x][y] || 1;
+        }
+      }
+      map.mask = mask;
+    },
+    playerWeight: 1,
+    update(dt) { hf.update(dt); },
+    music: music.sticky,
+    onStart() { runScene('map23'); },
+    onEnd() { setMap('The Castle'); },
+  },
+
+  'The Castle': {
+    stockWidth: 9,
+    cameraPos: v3(-120, 150, 200),
+    size: [19, 19],
+    capital: [1000, 2000],
+    startPos: [0, 9],
+    height: (i, j, t) => {
+      const s = map.str[j][i];
+      i -= 11;
+      j -= 9;
+      const r = sqrt(i * i + j * j);
+      const phi = 3 * atan2(i, j) - t * 0.002 + 0.5 * r;
+      let h = 0.03 * r * (1 + sin(phi));
+      const dt = t - (map.bellTime || t);
+      h *= 1 - pow(2, -0.000001 * dt * dt);
+      return s === '~' ? 0.5 : s === ' ' ? 1 : 2 + 0.5 * parseInt(s) + h;
+    },
+    update() {
+      if (player.i == 11 && player.j === 9 && !map.bellTime) {
+        map.bellTime = t;
+      }
+    },
+    onStart() {
+      map.str = `
+~~~~~~~~~~~~~~~~~~~
+~54545~~~~~~~54545~
+~43334323232343334~
+~53335111111153335~
+~43334323232343334~
+~54545       54545~
+~~313         313~~
+~~212  22233  212~~
+~~313  33344  313~~
+  212  44457  212~~
+~~313  33344  313~~
+~~212  22233  212~~
+~~313         313~~
+~54545       54545~
+~43334323232343334~
+~53335111111153335~
+~43334323232343334~
+~54545~~~~~~~54545~
+~~~~~~~~~~~~~~~~~~~
+`.trim().split('\n');
+      for (let i = 0; i < map.size[0]; ++i) {
+        for (let j = 0; j < map.size[1]; ++j) {
+          if (map.str[j][i] === ' ') {
+            stocks[i][j].material.color.set(0x204000);
+            stocks[i][j].material.emissive.set(0x204000);
+          } else if (map.str[j][i] !== '~') {
+            stocks[i][j].material.color.set(0x666666);
+            stocks[i][j].material.emissive.set(0);
+          }
+        }
+      }
+    },
+    onStart() { runScene('map24'); },
+    onEnd() {
+      setMap('demo');
+      showCredits();
+    },
     music: music.pixie,
   },
 
 };
-console.log(Object.keys(maps).length, 'maps');
 
 const hf = {
   get(i, j) {
@@ -987,6 +1028,10 @@ let stairs = [];
 const player = { obj: addPlayer() };
 
 function setMap(name) {
+  if (name !== 'demo') {
+    options.map = name;
+    saveOptions();
+  }
   map = maps[name];
   for (let row of stocks) {
     for (let stock of row) {
@@ -1060,7 +1105,7 @@ function animate(timestamp) {
   player.obj.rotation.z = 0.01 * t;
   if (map.cameraPos) {
     camera.position.lerp(map.cameraPos, 1 - pow(0.999, dt));
-    camera.lookAt(0, 0, 0);
+    camera.lookAt(0, 10, 0);
   }
 
   if (map.capital[1] <= player.capital) {
@@ -1078,7 +1123,6 @@ function animate(timestamp) {
   for (let e of effects) {
     e.update(t);
   }
-  map.update && map.update(dt);
   handleKeys(dt);
   hf.v[player.i][player.j] = min(hf.v[player.i][player.j], -map.playerWeight || 10);
   for (let i = 0; i < (map.dust || 0) * 0.001 * dt; ++i) {
@@ -1092,6 +1136,7 @@ function animate(timestamp) {
   }
   player.capital = floor(player.stocks * map.height(player.i, player.j, t));
   showCapital();
+  map.update && map.update(dt);
 }
 
 function onWindowResize() {
@@ -1268,6 +1313,22 @@ const options = {
   bloom: true,
   sound: true,
 };
+function loadOptions() {
+  const o = localStorage.getItem('options');
+  try {
+    if (o) {
+      Object.assign(options, JSON.parse(o));
+    }
+  } catch (error) {
+    console.error('Could not parse options:', o);
+    console.error(error);
+  }
+}
+function saveOptions() {
+  localStorage.setItem('options', JSON.stringify(options));
+}
+loadOptions();
+
 document.body.insertAdjacentHTML('beforeend', `
 <div id="menu-group" style="
   position: absolute; top: 0; width: 100vw; height: 100vh;
@@ -1277,7 +1338,7 @@ document.body.insertAdjacentHTML('beforeend', `
     margin: 3vh; font: 12vh Fascinate, sans-serif;">High Five Trading</div>
   <div id="menu" style="display: inline-block; font: 5vh Audiowide, sans-serif;">
     <style>#menu div { cursor: pointer; margin: 1vh; } #menu div:hover { color: #fff249; }</style>
-    <div onclick="continueGame()">Continue</div>
+    <div id="continue" onclick="continueGame()">Continue</div>
     <div onclick="newGame()">New game</div>
     <div id="sound" onclick="setSound(!options.sound)">☐ Sound</div>
     <div id="bloom" onclick="setBloom(!options.bloom)">☑ Bloom</div>
@@ -1286,18 +1347,20 @@ document.body.insertAdjacentHTML('beforeend', `
 </div>`);
 function continueGame() {
   map.onEnd();
-  setMap('tutorial');
+  setMap(options.map);
 }
 function newGame() {
   map.onEnd();
-  setMap('tutorial');
+  setMap('Tutorial');
 }
 function setBloom(setting) {
   options.bloom = setting;
+  saveOptions();
   document.getElementById('bloom').innerHTML = options.bloom ? '☑ Bloom' : '☐ Bloom';
 }
 function setSound(setting) {
   options.sound = setting;
+  saveOptions();
   document.getElementById('sound').innerHTML = options.sound ? '☑ Sound' : '☐ Sound';
   Howler.mute(!options.sound);
 }
@@ -1367,6 +1430,8 @@ function talk(side, pic, text) {
       talk.children[0].style.transform = transform;
       talk.children[0].style.flexDirection = side === 'L' ? 'row' : 'row-reverse';
       img.src = `pics/${pic}`;
+      img.style.display = 'none';
+      img.onload = () => { img.style.display = 'block'; };
       img.style.transform = side === 'L' ? 'scaleX(-1)' : '';
       document.getElementById('talk-text').innerHTML = `
         <p><b>${name}:</b></p>
@@ -1392,7 +1457,7 @@ function talk(side, pic, text) {
         max-height: 100%; border-radius: 1vh; ${ side === 'L' ? 'transform: scaleX(-1);' : '' }
         box-shadow: 0 0.2vh 1vh rgba(0, 0, 0, 0.5); margin-${side === 'L' ? 'right' : 'left'}: 1vh;">
       <div style="display: flex; flex-direction: column; flex: 1;">
-      <style>p { margin: 1vh; }</style>
+      <style>p { margin: 1vh 2vh; }</style>
       <div id="talk-text" style="flex: 1;">
         <p><b>${name}:</b></p>
         <p style="white-space: pre-wrap;">${text}</p>
@@ -1443,7 +1508,7 @@ const script = {
 ['L', 'mom-say', "No.\n\n<small>(Click, tap, or press Space or Enter to continue.)</small>"],
 ['R', 'fiona-say', "But I can do it, Mom!"],
 ['L', 'mom-say', "No. Trading stocks is more dangerous than you realize, Fiona."],
-['L', 'mom-say', "You cannot just use the arrow keys to move your entire portfolio into another stock."],
+['L', 'mom-say', "You cannot just swipe or use the arrow keys to move your entire portfolio into another stock."],
 ['R', 'fiona-shout', "Watch me!"],
   ],
   tutorialMovingBack: [
@@ -1454,13 +1519,17 @@ const script = {
 ['R', 'fiona-embarrassed', "Oops. Let me try that again."],
   ],
   tutorialMoney: [
-['R', 'fiona-smile', "I've got this, Mom! See the bar on the left side of the screen? I made us money."],
+['R', 'fiona-smile', "I've got this, Mom! Did you see the green donut?"],
+['L', 'mom-sad', "That's no donut! That's a profit indicator."],
+['R', 'fiona-smile', "And the bar on the right side of the screen? It shows I made us money."],
 ['L', 'mom-sad', "Your sister made us a lot of money too, you know."],
 ['R', 'fiona-embarrassed', "Please don't make this about Dolores. I'll be careful. I'll stay safe."],
 ['L', 'mom-say', "Good. You just stick with this one privately traded stock. No need to enter the local stock exchange when you hit its capital requirement."],
   ],
   tutorialDone: [
-['L', 'mom-say', "You now have enough capital to enter the local stock exchange. But it's better not to press C and rather stay here in safety. Indefinitely."],
+['L', 'mom-say', "You now have enough capital to take the golden stairs to the local stock exchange."],
+['L', 'mom-say', "But it's better if you avoid the stairs and rather stay here in safety."],
+['L', 'mom-smile', "Indefinitely."],
   ],
 
   map2: [
@@ -1587,6 +1656,7 @@ const script = {
   ],
 
   map15reunion: [
+[null, null, "<i>A familiar face awaits you at the top of the stairs.</i>"],
 ['R', 'fiona-laugh', "You're alive!"],
 ['L', 'dolores-smile', "Did you think bankruptcy actually kills a person?"],
 ['R', 'fiona-laugh', "Yeah."],
@@ -1644,17 +1714,31 @@ const script = {
   ],
 
   map18: [
-  // TODO
-['L', 'dolores-say', "Computers do all the trading. No human element. No harmony."],
-['R', 'fiona-shout', "Don't sing me that hippie song now."],
+['L', 'dolores-say', "The Conglomerate runs on computers."],
+['L', 'dolores-say', "Their computer does all the trading. There is no human element. No harmony."],
+['R', 'fiona-shout', "Don't give me that hippie sermon now!"],
 ['R', 'fiona-embarrassed', "I'm still angry."],
 ['L', 'dolores-smile', "Anger is a weakness."],
-['L', 'dolores-say', "Only through harmony—"],
+['L', 'dolores-say', "You need to find harmony. You need to find balance in—"],
 ['R', 'fiona-shout', "Stop right there."],
   ],
 
+  map18musicoptional: [
+['L', 'dolores-say', "Do you remember this song?"],
+['R', 'fiona-smile', "Sure I do! Do you want to do our dance?"],
+['L', 'dolores-smile', "Let's do our dance!"],
+  ],
+
+  map19theplan: [
+['R', 'fiona-say', "Okay, let's knock this Conglomerate down. How do we do that?"],
+['L', 'dolores-say', "It will not be easy."],
+['L', 'dolores-say', "We have to pass through a number of stock exchanges to reach the Conglomerate headquarters."],
+['R', 'fiona-say', "Is that why we came to Khartoum?"],
+['L', 'dolores-say', "Yes. This stock exchange is experiencing a series of financial bubbles."],
+['L', 'dolores-smile', "Take advantage, and let's be on our way!"],
+  ],
+
   map19: [
-  // TODO
 ['R', 'fiona-smile', "How did you figure out all that about the Conglomerate?"],
 ['L', 'dolores-smile', "Mom told me."],
 ['R', 'fiona-shout', "What?!"],
@@ -1683,6 +1767,23 @@ const script = {
 ['R', 'fiona-embarrassed', "Have they?"],
 ['R', 'fiona-laugh', "I must have confused them with some other group with a menacing name then!"],
 ['R', 'fiona-smile', "Forget I said anything."],
+  ],
+
+  map20mom: [
+['L', 'mom-say', "Fiona!"],
+['L', 'mom-smile', "I brought cake."],
+['R', 'fiona-say', "Mom! Come in."],
+['L', 'mom-smile', "I love your curtains!"],
+['R', 'fiona-embarrassed', "Yeah. So..."],
+['R', 'fiona-say', "I'm working with Dolores now."],
+['L', 'mom-smile', "Yes. Good."],
+['L', 'mom-smile', "I'm so proud of you."],
+['R', 'fiona-thoughtful', "I guess it's nice that you support me now."],
+['R', 'fiona-say', "After holding me back for so long."],
+['L', 'mom-say', "Fiona!"],
+['L', 'mom-say', "Nobody can hold you back!"],
+['R', 'fiona-embarrassed', "Sometimes it felt like you tried anyway."],
+['R', 'fiona-reassuring', "But it's fine. Let's have some cake!"],
   ],
 
   map21: [
@@ -1775,7 +1876,6 @@ const script = {
   ],
 
 };
-console.log(Object.keys(script).length, 'scripts');
 
 function playMusic() {
   new Howl({

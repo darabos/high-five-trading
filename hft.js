@@ -5,7 +5,7 @@ scene.fog = new THREE.Fog(scene.background, 1, 3000);
 
 const fov = 60 * window.innerHeight / window.innerWidth;
 const camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 5000);
-camera.position.set(-90, 200, 300);
+camera.position.set(-90, 250, 350);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -267,8 +267,23 @@ const maps = {
       const mask = max(0.1, tanh(10 - dist(i, j, 10, 10)));
       return mask * (1 + 0.3 * sin(0.0005 * t * (i + 10) + j));
     },
+    onEnd() { setMap('cornerRipples'); },
+    music: music.sticky,
+  },
+
+  cornerRipples: {
+    size: [20, 20],
+    capital: [1000, 10000],
+    height: function(i, j, t) {
+      h = 1;
+      for (let {x, y, p} of [{p: 0, x: 0, y: 0}, {p: 1, x: 19, y: 0}, {p: 2, x: 19, y: 19}, {p: 3, x: 0, y: 19}]) {
+        const d = dist(i, j, x, y);
+        h += sin(0.001 * t + p * Math.PI / 4) * pow(1.01, -d * d) * sin(0.01 * t - d);
+      }
+      return max(0.5, h);
+    },
     onEnd() { setMap('scribbles'); },
-    music: music.kungfu,
+    music: music.urbana,
   },
 
   scribbles: {
@@ -931,8 +946,8 @@ function setMap(name) {
   stairs = addStairs();
   player.i = map.startPos ? map.startPos[0] : floor(map.size[0] / 2);
   player.j = map.startPos ? map.startPos[1] : floor(map.size[1] / 2);
-  player.stocks = map.capital[0]
-  player.buyPrice = 1;
+  player.buyPrice = map.height(player.i, player.j, t);
+  player.stocks = floor(map.capital[0] / player.buyPrice);
   player.win = false;
   stairState = 0;
 
@@ -965,7 +980,7 @@ function ij2vec(i, j) {
 }
 
 let startTime;
-let t;
+let t = performance.now();
 let stairState;
 function animate(timestamp) {
   requestAnimationFrame(animate);

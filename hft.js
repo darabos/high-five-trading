@@ -171,17 +171,17 @@ const normdir = (a, b) => {
 
 const music = {
   // Cowboy Glitch (borja vs. go1dfish) by spinningmerkaba (c) copyright 2011 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/33623 Ft: borja, go1dfish
-  cowboy: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Cowboy_Glitch_(borja_vs._go1dfish).mp3',
+  cowboy: 'https://media.githubusercontent.com/media/darabos/high-five-trading/master/music/jlbrock44_-_Cowboy_Glitch_(borja_vs._go1dfish).mp3',
   // 260809 Funky Nurykabe by spinningmerkaba (c) copyright 2010 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/29186
-  funky: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_260809_Funky_Nurykabe.mp3',
+  funky: 'https://media.githubusercontent.com/media/darabos/high-five-trading/master/music/jlbrock44_-_260809_Funky_Nurykabe.mp3',
   // Urbana-Metronica (wooh-yeah mix) by spinningmerkaba (c) copyright 2011 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/33345 Ft: Morusque, Jeris, CSoul, Alex Beroza
-  urbana: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Urbana-Metronica_(wooh-yeah_mix).mp3',
+  urbana: 'https://media.githubusercontent.com/media/darabos/high-five-trading/master/music/jlbrock44_-_Urbana-Metronica_(wooh-yeah_mix).mp3',
   // Reusenoise  (DNB Mix) by spinningmerkaba (c) copyright 2017 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/56531
-  reusenoise: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Reusenoise_(DNB_Mix)_1.mp3',
+  reusenoise: 'https://media.githubusercontent.com/media/darabos/high-five-trading/master/music/jlbrock44_-_Reusenoise_(DNB_Mix)_1.mp3',
   // Organometron (140811 MIx) by spinningmerkaba (c) copyright 2011 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/33115 Ft: Morusque
-  organometron: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Organometron_(140811_MIx).mp3',
+  organometron: 'https://media.githubusercontent.com/media/darabos/high-five-trading/master/music/jlbrock44_-_Organometron_(140811_MIx).mp3',
   // Sticky Bumps (featuring Debbizo) by spinningmerkaba (c) copyright 2011 Licensed under a Creative Commons Attribution (3.0) license. http://dig.ccmixter.org/files/jlbrock44/32247
-  sticky: 'http://ccmixter.org/content/jlbrock44/jlbrock44_-_Sticky_Bumps_(featuring_Debbizo).mp3',
+  sticky: 'https://media.githubusercontent.com/media/darabos/high-five-trading/master/music/jlbrock44_-_Sticky_Bumps_(featuring_Debbizo).mp3',
 };
 
 const maps = {
@@ -239,7 +239,7 @@ const maps = {
     },
     onStart() { runScene('tutorial'); },
     onEnd() { setMap('Gentle Waves'); },
-    music: music.across,
+    music: music.organometron,
   },
 
   'Gentle Waves': {
@@ -253,7 +253,7 @@ const maps = {
     },
     onStart() { runScene('map2'); },
     onEnd() { setMap('A Drop in the Ocean'); },
-    music: music.pixie,
+    music: music.organometron,
   },
 
   'A Drop in the Ocean': {
@@ -282,7 +282,7 @@ const maps = {
     },
     onStart: () => runScene('map4'),
     onEnd() { setMap('The Frequency Spectrum'); },
-    music: music.across,
+    music: music.urbana,
   },
 
   'The Frequency Spectrum': {
@@ -363,7 +363,7 @@ const maps = {
       }
       return h;
     },
-    music: music.pixie,
+    music: music.funky,
   },
 
   'Checkerboard': {
@@ -483,7 +483,7 @@ const maps = {
     },
     onStart() { runScene('map12didit'); },
     onEnd() { setMap('A Whirlwind of Capital'); },
-    music: music.cowboy,
+    music: music.urbana,
   },
 
   'A Whirlwind of Capital': {
@@ -603,7 +603,7 @@ const maps = {
     },
     onStart() { runScene('map16'); },
     onEnd() { setMap('Lissajous Trading'); },
-    music: music.cowboy,
+    music: music.urbana,
   },
 
   'Lissajous Trading': {
@@ -689,7 +689,7 @@ const maps = {
       map.bubs = [];
     },
     onEnd() { setMap('The Empire'); },
-    music: music.pixie,
+    music: music.organometron,
   },
 
   'The Empire': {
@@ -757,7 +757,7 @@ const maps = {
     },
     onStart() { runScene('map20mom'); },
     onEnd() { setMap(options.sound ? 'Cowboy Glitch by Spinningmerkaba' : 'Flashes of the Future'); },
-    music: music.cowboy,
+    music: music.sticky,
   },
 
   'Cowboy Glitch by Spinningmerkaba': {
@@ -830,7 +830,7 @@ const maps = {
     },
     onStart() { runScene('map21'); },
     onEnd() { setMap('It Is Time'); },
-    music: music.pixie,
+    music: music.funky,
   },
 
   'It Is Time': {
@@ -877,7 +877,7 @@ const maps = {
     },
     onStart() { runScene('map22'); },
     onEnd() { setMap('Find a Way'); },
-    music: music.sticky,
+    music: music.urbana,
   },
 
   'Find a Way': {
@@ -1003,7 +1003,7 @@ const maps = {
         showCredits();
       });
     },
-    music: music.pixie,
+    music: music.reusenoise,
   },
 
 };

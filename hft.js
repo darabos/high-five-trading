@@ -1536,21 +1536,27 @@ const script = {
 ['L', 'mom-say', "You cannot just swipe or use the arrow keys to move your entire portfolio into another stock."],
 ['R', 'fiona-shout', "Watch me!"],
   ],
+
   tutorialMovingBack: [
 ['L', 'mom-say', "Stop right there. Our family has lost so much already!"],
-['L', 'mom-sad', "Stocks are volatile. If you move back to the cash position when the stock is lower than when you invested, you will lose money."],
+['L', 'mom-sad', "Stocks are volatile. See how the price rises and sinks?"],
+['L', 'mom-sad', "If you move back to the cash position when the stock is lower than when you invested, you will lose money."],
+['R', 'fiona-say', "\"Buy low, sell high.\"<br><br>I've got this, Mom."],
   ],
+
   tutorialOops: [
 ['R', 'fiona-embarrassed', "Oops. Let me try that again."],
   ],
+
   tutorialMoney: [
-['R', 'fiona-smile', "I've got this, Mom! Did you see the green donut?"],
+['R', 'fiona-smile', "Yay! Did you see the green donut?"],
 ['L', 'mom-sad', "That's no donut! That's a profit indicator."],
 ['R', 'fiona-smile', "And the bar on the right side of the screen? It shows I made us money."],
 ['L', 'mom-sad', "Your sister made us a lot of money too, you know."],
 ['R', 'fiona-embarrassed', "Please don't make this about Dolores. I'll be careful. I'll stay safe."],
 ['L', 'mom-say', "Good. You just stick with this one privately traded stock. No need to enter the local stock exchange when you hit its capital requirement."],
   ],
+
   tutorialDone: [
 ['L', 'mom-say', "You now have enough capital to take the golden stairs to the local stock exchange."],
 ['L', 'mom-say', "But it's better if you avoid the stairs and rather stay here in safety."],
@@ -1629,7 +1635,7 @@ const script = {
 ['R', 'fiona-thoughtful', "It's time.\n\nI can do it."],
 ['L', 'mom-say', "Please Fiona.\n\nYou don't have to prove anything."],
 ['L', 'mom-smile', "I will always love you."],
-['R', 'fiona-smile', "I love you too, Mom. I'm not jealous of Dolores."],
+['R', 'fiona-smile', "I love you too, Mom."],
 ['R', 'fiona-smile', "I'm not jealous of Dolores."],
 ['R', 'fiona-embarrassed', "Yes, I was jealous at some point."],
 ['R', 'fiona-thoughtful', "But not anymore. I just want to understand what happened to her."],

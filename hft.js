@@ -281,21 +281,8 @@ const maps = {
       return sin(phi) * attenuation + 1.1;
     },
     onStart: () => runScene('map4'),
-    onEnd() { setMap('The Frequency Spectrum'); },
-    music: music.urbana,
-  },
-
-  'The Frequency Spectrum': {
-    size: [20, 20],
-    capital: [1000, 100000],
-    cameraPos: v3(-50, 250, 350),
-    height: function(i, j, t) {
-      const mask = max(0.1, tanh(10 - dist(i, j, 10, 10)));
-      return mask * (1 + 0.3 * sin(0.0005 * t * (i + 10) + j));
-    },
-    onStart: () => runScene('map5'),
     onEnd() { setMap('Bulls & Bears'); },
-    music: music.sticky,
+    music: music.urbana,
   },
 
   'Bulls & Bears': {
@@ -392,8 +379,21 @@ const maps = {
       return max(0.5, h);
     },
     onStart: () => runScene('map9'),
-    onEnd() { setMap('The Collapse'); },
+    onEnd() { setMap('The Frequency Spectrum'); },
     music: music.urbana,
+  },
+
+  'The Frequency Spectrum': {
+    size: [20, 20],
+    capital: [1000, 100000],
+    cameraPos: v3(-50, 250, 350),
+    height: function(i, j, t) {
+      const mask = max(0.1, tanh(10 - dist(i, j, 10, 10)));
+      return mask * (1 + 0.3 * sin(0.0005 * t * (i + 10) + j));
+    },
+    onStart: () => runScene('map9b'),
+    onEnd() { setMap('The Collapse'); },
+    music: music.sticky,
   },
 
   'The Collapse': {
@@ -1574,13 +1574,6 @@ const script = {
 ['L', 'cat-up.jpg', "Purr."],
   ],
 
-  map5: [
-['L', 'mom-say', "Stay out of high frequency trading, Fiona! You don't have the reflexes of your sister."],
-['L', 'mom-sad', "You don't have the reflexes of your sister."],
-['R', 'fiona-embarrassed', "Thanks for the vote of confidence, Mom."],
-['R', 'fiona-smile', "The faster the stock, the faster the gains!"],
-  ],
-
   map6dimples: [
 ['L', 'mom-neutral', "These bigger exchanges are dominated by the largest firms."],
 ['L', 'mom-say', "Promise to stay out of their way, Fi."],
@@ -1614,6 +1607,13 @@ const script = {
 ['R', 'fiona-thoughtful', "Mom never got over it."],
 ['L', 'cat-front.jpg', "Meow?"],
 ['R', 'fiona-thoughtful', "Yeah."],
+  ],
+
+  map9b: [
+['L', 'mom-say', "Stay out of high frequency trading, Fiona! You don't have the reflexes of your sister."],
+['L', 'mom-sad', "You don't have the reflexes of your sister."],
+['R', 'fiona-embarrassed', "Thanks for the vote of confidence, Mom."],
+['R', 'fiona-smile', "The faster the stock, the faster the gains!"],
   ],
 
   map10: [

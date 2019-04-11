@@ -1204,6 +1204,7 @@ function addBoom(i, j, gain) {
 const keys = {};
 function onKeyDown(evt) {
   if (evt.key === 'Escape') {
+    evt.preventDefault();
     setMap('demo');
     if (talking) {
       document.getElementById('talk').remove();
@@ -1212,15 +1213,16 @@ function onKeyDown(evt) {
   }
   if (talking) {
     if (evt.key === ' ' || evt.key === 'Enter') {
+      evt.preventDefault();
       advanceTalk();
     }
     return;
   }
-  if (evt.key === 'ArrowLeft') { keys.left = true; }
-  else if (evt.key === 'ArrowRight') { keys.right = true; }
-  else if (evt.key === 'ArrowUp') { keys.up = true; }
-  else if (evt.key === 'ArrowDown') { keys.down = true; }
-  else if (evt.key === ' ') { keys.space = true; }
+  if (evt.key === 'ArrowLeft') { evt.preventDefault(); keys.left = true; }
+  else if (evt.key === 'ArrowRight') { evt.preventDefault(); keys.right = true; }
+  else if (evt.key === 'ArrowUp') { evt.preventDefault(); keys.up = true; }
+  else if (evt.key === 'ArrowDown') { evt.preventDefault(); keys.down = true; }
+  else if (evt.key === ' ') { evt.preventDefault(); keys.space = true; }
 }
 function onKeyUp(evt) {
   if (evt.key === 'ArrowLeft') { keys.left = false; }
@@ -1489,13 +1491,13 @@ function talk(side, pic, text) {
       width: 100%; height: 100%;
       padding: 2vh; background: white; transform: ${transform}; flex-direction: ${side === 'L' ? 'row' : 'row-reverse'};
       box-shadow: 0 0.2vh 1vh rgba(0, 0, 0, 0.5); font: 3vh sans-serif; border-radius: 1vh; display: flex;">
-      <img id="talk-pic" src="pics/${pic}" style="
+      <img id="talk-pic" src="${ pic ? `pics/${pic}` : '' }" style="
         max-height: 100%; border-radius: 1vh; ${ side === 'L' ? 'transform: scaleX(-1);' : '' }
         box-shadow: 0 0.2vh 1vh rgba(0, 0, 0, 0.5); margin-${side === 'L' ? 'right' : 'left'}: 1vh;">
       <div style="display: flex; flex-direction: column; flex: 1;">
       <style>p { margin: 1vh 2vh; }</style>
       <div id="talk-text" style="flex: 1;">
-        <p><b>${name}:</b></p>
+        ${ name ? `<p><b>${name}:</b></p>` : '' }
         <p style="white-space: pre-wrap;">${text}</p>
       </div>
     </div>
@@ -1524,19 +1526,6 @@ function runScene(scene, ending) {
   scriptIndex = -1;
   scriptEnding = ending;
   advanceTalk();
-}
-function preloadPics() {
-  for (let scene of Object.values(script)) {
-    for (let s of scene) {
-      if (!s[1]) { continue; }
-      const i = new Image();
-      if (s[1].includes('.')) {
-        i.src = `pics/${s[1]}`;
-      } else {
-        i.src = `pics/${s[1]}.png`;
-      }
-    }
-  }
 }
 
 const script = {
@@ -1570,6 +1559,7 @@ const script = {
 
   map2: [
 ['L', 'mom-say', "Fiona. You know you can come home any time you feel in over your head."],
+['L', 'mom-say', "Just press ESC when work starts to feel too hard."],
 ['R', 'fiona-smile', "Thanks, Mom. I'll keep that in mind while I clear this little local market on the way to the national stock exchange."],
   ],
 
@@ -1694,6 +1684,7 @@ const script = {
   map15reunion: [
 [null, null, "<i>A familiar face awaits you at the top of the stairs.</i>"],
 ['R', 'fiona-laugh', "You're alive!"],
+['L', 'dolores-say', "Hello, sister."],
 ['L', 'dolores-smile', "Did you think bankruptcy actually kills a person?"],
 ['R', 'fiona-laugh', "Yeah."],
 ['R', 'fiona-embarrassed', "I mean, no."],
@@ -1922,7 +1913,6 @@ function playMusic() {
   });
 }
 
-preloadPics();
 setMap('demo');
 playMusic();
 animate();

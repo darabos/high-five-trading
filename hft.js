@@ -1412,13 +1412,15 @@ setSound(options.sound);
 document.body.insertAdjacentHTML('beforeend', `
 <div id="credits-group" style="
   position: absolute; top: 0; width: 100vw; height: 100vh;
-  display: none; flex-direction: column; justify-content: center; text-align: center; align-items: center;
+  display: none; flex-direction: column; justify-content: center; align-items: center;
   color: white; text-shadow: 0 0 0.5vh black;" onclick="hideCredits()">
   <div style="
-    margin: 1vh; font: 4vh Fascinate, sans-serif;">High Five Trading</div>
+    text-align: center; margin: 3vh; font: 8vh Fascinate, sans-serif;">High Five Trading</div>
   <style> a { color: #ffff44; } </style>
-  <div style="margin: 1vh; font: 3vh sans-serif;">
-    <p>A Repl.it Game Jam 2019 game by <a href="https://twitter.com/DanielDarabos">Daniel Darabos</a>.</p>
+  <div style="margin: 3vh; font: 4vh sans-serif; overflow-y: auto;">
+    <p>
+      A <a href="https://repl.it/talk/challenge/High-Five-Trading/13003">Repl.it Game Jam 2019 game</a>
+      by <a href="https://twitter.com/DanielDarabos">Daniel Darabos</a>.</p>
     <p>
       Character art generated with a fantastic <a href="https://arxiv.org/abs/1812.04948">StyleGAN</a>
       model trained by <a href="https://www.gwern.net/Faces">Gwern Branwen</a>,
@@ -1429,7 +1431,7 @@ document.body.insertAdjacentHTML('beforeend', `
       Cat photos by <a href="https://www.publicdomainpictures.net/en/browse-author.php?hleda=cat&seradit=date&a=8245">George Hodan</a>.
     </p>
     <p>
-      All music by <a href="http://dig.ccmixter.org/people/jlbrock44">spinningmerkaba</a>,
+      All music by <a href="http://dig.ccmixter.org/people/jlbrock44">Spinningmerkaba</a>,
       graciously licensed under Creative Commons Attribution (3.0).
     </p>
     <p>

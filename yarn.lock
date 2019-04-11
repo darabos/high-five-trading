@@ -6,6 +6,10 @@ howler@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/howler/-/howler-2.1.1.tgz#b8ae44b83f4b8a5b5ef354030ed0927314d8a996"
 
+loov-jsfx@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/loov-jsfx/-/loov-jsfx-1.2.0.tgz#719b2eff08129b1e78f194a2cf53e30facf50bbc"
+
 three@^0.103.0:
   version "0.103.0"
   resolved "https://registry.yarnpkg.com/three/-/three-0.103.0.tgz#63b3dbccc861caad93269618061a73dadebae71b"

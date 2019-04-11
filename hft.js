@@ -14,7 +14,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 function setupComposer() {
-  renderer.toneMappingExposure = Math.pow(0.9, 4.0);
   const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.5, 0.5);
   const composer = new THREE.EffectComposer(renderer);
   composer.setSize(window.innerWidth, window.innerHeight);
@@ -1134,6 +1133,9 @@ function animate(timestamp) {
   }
 
   if (map.capital[1] <= player.capital) {
+    if (stairState <= 0) {
+      sfx.play('stairs');
+    }
     stairState += dt;
     stairState = min(stairState, 2000);
   } else if (stairState > 0) {
@@ -1174,8 +1176,9 @@ window.addEventListener('resize', onWindowResize, false);
 
 const effects = [];
 function addBoom(i, j, gain) {
-  if (gain === 0) { return; }
   const g = Math.min(5, Math.abs(gain * 5));
+  if (g < 0.1) { return; }
+  sfx.profit(Math.sign(gain) * g * 1.9);
   const geo = new THREE.TorusGeometry(10, g, 5, 20);
   const mat = new THREE.MeshPhongMaterial(gain > 0 ? { color: 0x80ff40 } : { color: 0x800000 });
   const b = new THREE.Mesh(geo, mat);
@@ -1393,6 +1396,7 @@ function newGame() {
 }
 function setBloom(setting) {
   options.bloom = setting;
+  renderer.toneMappingExposure = Math.pow(0.9, options.bloom ? 4 : 1);
   saveOptions();
   document.getElementById('bloom').innerHTML = options.bloom ? '☑ Bloom' : '☐ Bloom';
 }
@@ -1417,8 +1421,8 @@ document.body.insertAdjacentHTML('beforeend', `
     <p>A Repl.it Game Jam 2019 game by <a href="https://twitter.com/DanielDarabos">Daniel Darabos</a>.</p>
     <p>
       Character art generated with a fantastic <a href="https://arxiv.org/abs/1812.04948">StyleGAN</a>
-      model trained by <a href="https://www.gwern.net/Faces">Gwern Branwen</a>
-      through a <a href="https://colab.research.google.com/drive/1LiWxqJJMR5dg4BxwUgighaWp2U_enaFd#offline=true&sandboxMode=true">Colaboratory notebook</a>
+      model trained by <a href="https://www.gwern.net/Faces">Gwern Branwen</a>,
+      used through a <a href="https://colab.research.google.com/drive/1LiWxqJJMR5dg4BxwUgighaWp2U_enaFd#offline=true&sandboxMode=true">Colaboratory notebook</a>
       by <a href="https://twitter.com/halcy">@halcy</a>.
     </p>
     <p>
@@ -1429,9 +1433,14 @@ document.body.insertAdjacentHTML('beforeend', `
       graciously licensed under Creative Commons Attribution (3.0).
     </p>
     <p>
-      JavaScript dependencies: <a href="https://threejs.org/">three.js</a> and <a href="https://howlerjs.com">howler.js</a>
-      kindly provided by <a href="https://twitter.com/mrdoob">Ricardo Cabello</a>
-      and <a href="https://twitter.com/GoldFireStudios">James Simpson</a> and their collaborators under the MIT license.
+      JavaScript dependencies kindly provided under the MIT license:
+      <a href="https://threejs.org/">three.js</a>
+      by <a href="https://twitter.com/mrdoob">Ricardo Cabello</a> & others,
+      <a href="https://howlerjs.com">howler.js</a>
+      by <a href="https://twitter.com/GoldFireStudios">James Simpson</a> & others,
+      <a href="https://github.com/loov/jsfx">jsfx</a>
+      by <a href="https://twitter.com/egonelbre">Egon Elbre</a> & others.
+
     </p>
     <p>
       Using the <a href="https://fonts.google.com/specimen/Fascinate">Fascinate</a>
@@ -1912,12 +1921,46 @@ const script = {
 
 function playMusic() {
   new Howl({
-    src: map.music || 'https://raw.githubusercontent.com/anars/blank-audio/master/30-seconds-of-silence.mp3',
+    src: map.music || 'https://raw.githubusercontent.com/darabos/high-five-trading/master/silence30.mp3',
     autoplay: true,
     volume: 0.5,
     onend: () => playMusic(),
   });
 }
+
+function setupSfx() {
+  const sfx = [];
+  for (let i = 0; i < 10; ++i) {
+    const lib = {};
+    for (let j = 0; j < 10; ++j) {
+      lib[`p${j}`] = {
+        Frequency: { Start: pow(1.5, 10 + j) },
+        Volume: { Sustain: 0.1, Decay: 0.1, Master: 0.1 },
+        Generator: { Func: 'sine' },
+      };
+      lib[`n${j}`] = {
+        Frequency: { Start: pow(1.5, 10 + j) },
+        Volume: { Sustain: 0.1, Decay: 0.1, Master: 0.1 },
+        Generator: { Func: 'square' },
+      };
+      lib.stairs = {
+        Frequency: { Start: pow(1.5, 16), ChangeSpeed: 0.1, ChangeAmount: 5 },
+        Volume: { Sustain: 0.1, Decay: 0.4, Punch: 0.5 },
+      };
+    }
+    sfx.push(jsfx.Sounds(lib));
+  }
+  let i = 0;
+  sfx.play = function(name) {
+    if (options.sound) {
+      sfx[i][name]();
+      i = (i + 1) % sfx.length;
+    }
+  };
+  sfx.profit = function(g) { sfx.play(g > 0 ? `p${floor(g)}` : `n${floor(-g)}`); };
+  return sfx;
+}
+const sfx = setupSfx();
 
 setMap('demo');
 playMusic();

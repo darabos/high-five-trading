@@ -547,6 +547,8 @@ const maps = {
         const sy = map.h[floor(map.by)][floor(map.bx + 0.5)] - map.h[floor(map.by + 1)][floor(map.bx + 0.5)];
         map.vx += 0.000001 * dt * sx;
         map.vy += 0.000001 * dt * sy;
+        map.vx -= 0.005 * dt * dir.i;
+        map.vy -= 0.005 * dt * dir.j;
       }
       map.vx *= pow(0.999, dt);
       map.vy *= pow(0.999, dt);
@@ -642,6 +644,8 @@ const maps = {
       if (d > 1) {
         map.tilt.x /= d;
         map.tilt.y /= d;
+        map.tilt.vx = 0;
+        map.tilt.vy = 0;
       }
       const t = { x: 9.5 - player.i, y: 9.5 - player.j };
       t.d = sqrt(t.x * t.x + t.y * t.y) * 10 / sqrt(2);

@@ -547,8 +547,8 @@ const maps = {
         const sy = map.h[floor(map.by)][floor(map.bx + 0.5)] - map.h[floor(map.by + 1)][floor(map.bx + 0.5)];
         map.vx += 0.000001 * dt * sx;
         map.vy += 0.000001 * dt * sy;
-        map.vx -= 0.005 * dt * dir.i;
-        map.vy -= 0.005 * dt * dir.j;
+        map.vx -= 0.01 * dt * dir.i;
+        map.vy -= 0.01 * dt * dir.j;
       }
       map.vx *= pow(0.999, dt);
       map.vy *= pow(0.999, dt);
@@ -766,6 +766,7 @@ const maps = {
   'Cowboy Glitch by Spinningmerkaba': {
     cameraPos: v3(-90, 300, 300),
     size: [20, 20],
+    startPos: [10, 19],
     capital: [1000, 10000],
     height: (i, j, t) => {
       return 0.1 + 0.2 * map.freqs[j][i] / (j + 10);
@@ -1171,6 +1172,7 @@ function animate(timestamp) {
 }
 
 function onWindowResize() {
+  camera.fov = 60 * window.innerHeight / window.innerWidth;
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1631,7 +1633,7 @@ const script = {
   ],
 
   map9b: [
-['L', 'mom-say', "Stay out of high frequency trading, Fiona! You don't have the reflexes of your sister."],
+['L', 'mom-say', "Stay out of high frequency trading, Fiona!"],
 ['L', 'mom-sad', "You don't have the reflexes of your sister."],
 ['R', 'fiona-embarrassed', "Thanks for the vote of confidence, Mom."],
 ['R', 'fiona-smile', "The faster the stock, the faster the gains!"],

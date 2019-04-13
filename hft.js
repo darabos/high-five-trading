@@ -99,15 +99,15 @@ addLights();
 addGround();
 addSky();
 
+const stockColor = 0x105080;
 function addStocks() {
   const stocks = [];
   const w = map.stockWidth || 5;
+  const geo = new THREE.BoxGeometry(w, 20, w);
   for (let i = 0; i < map.size[0]; ++i) {
     const row = [];
     for (let j = 0; j < map.size[1]; ++j) {
-      const geo = new THREE.BoxGeometry(w, 20, w);
-      const color = 0x105080;
-      const mat = new THREE.MeshPhongMaterial( { color, emissive: color, flatShading: true } );
+      const mat = new THREE.MeshPhongMaterial( { color: stockColor, emissive: stockColor, flatShading: true } );
       const block = new THREE.Mesh(geo, mat);
       block.position.x = i * 10 - 5 * map.size[0];
       block.position.z = j * 10 - 5 * map.size[1];
@@ -411,7 +411,7 @@ const maps = {
       hf.update(dt);
       if (player.i === map.tower[0] && player.j === map.tower[1]) {
         hf.u[map.tower[0]][map.tower[1]] = 10;
-        stocks[map.tower[0]][map.tower[1]].material.color.set(0x105080);
+        stocks[map.tower[0]][map.tower[1]].material.color.set(stockColor);
         map.tower = [floor(rnd() * 20), floor(rnd() * 20)];
         stocks[map.tower[0]][map.tower[1]].material.color.set(map.towerColor);
       }
@@ -823,8 +823,8 @@ const maps = {
         const delay = 1000;
         const growth = 500;
         if (m.t + delay < t) {
-          stocks[m.i][m.j].material.color.set(0x105080);
-          stocks[m.i][m.j].material.emissive.set(0x105080);
+          stocks[m.i][m.j].material.color.set(stockColor);
+          stocks[m.i][m.j].material.emissive.set(stockColor);
           hf.u[m.i][m.j] = min(growth, t - m.t - delay) / growth;
         }
         if (m.t + delay + growth < t) {

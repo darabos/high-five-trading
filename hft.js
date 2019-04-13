@@ -1054,6 +1054,10 @@ let stairs = [];
 const player = { obj: addPlayer() };
 
 function setMap(name) {
+  flashTime = t + 500;
+  flashFunc = () => setMapNow(name);
+}
+function setMapNow(name) {
   if (name !== 'demo') {
     options.map = name;
     saveOptions();
@@ -1109,6 +1113,8 @@ function ij2vec(i, j) {
 let startTime;
 let t = performance.now();
 let stairState;
+let flashTime = t;
+let flashFunc;
 function animate(timestamp) {
   requestAnimationFrame(animate);
   if (startTime === undefined) { startTime = timestamp; }
@@ -1135,6 +1141,12 @@ function animate(timestamp) {
   if (map.cameraPos) {
     camera.position.lerp(map.cameraPos, 1 - pow(0.999, dt));
     camera.lookAt(0, 10, 0);
+  }
+  const flash = pow(1.00001, -(flashTime - t) * (flashTime - t));
+  renderer.toneMappingExposure = pow(0.9, (options.bloom ? 4 : 1) - 10 * flash);
+  if (flashFunc && flashTime < t) {
+    flashFunc();
+    flashFunc = undefined;
   }
 
   if (map.capital[1] <= player.capital) {
@@ -1970,6 +1982,6 @@ function setupSfx() {
 }
 const sfx = setupSfx();
 
-setMap('demo');
+setMapNow('demo');
 playMusic();
 animate();

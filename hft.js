@@ -251,21 +251,8 @@ const maps = {
       return 1 + 0.5 * sin(4 * t + i + 2);
     },
     onStart() { runScene('map2'); },
-    onEnd() { setMap('A Drop in the Ocean'); },
-    music: music.organometron,
-  },
-
-  'A Drop in the Ocean': {
-    size: [20, 20],
-    capital: [1000, 10000],
-    cameraPos: v3(-50, 250, 350),
-    height: function(i, j, t) {
-      const phi = 0.005 * t - 0.5 * dist(i, j, 10, 10);
-      return 1 + 0.2 * sin(phi);
-    },
-    onStart: () => runScene('map3'),
     onEnd() { setMap('Swirling Slowly'); },
-    music: music.funky,
+    music: music.organometron,
   },
 
   'Swirling Slowly': {
@@ -279,9 +266,22 @@ const maps = {
       const attenuation = pow(2, -0.02 * r * r);
       return sin(phi) * attenuation + 1.1;
     },
-    onStart: () => runScene('map4'),
-    onEnd() { setMap('Bulls & Bears'); },
+    onStart() { runScene('map3'); },
+    onEnd() { setMap('A Drop in the Ocean'); },
     music: music.urbana,
+  },
+
+  'A Drop in the Ocean': {
+    size: [20, 20],
+    capital: [1000, 10000],
+    cameraPos: v3(-50, 250, 350),
+    height: function(i, j, t) {
+      const phi = 0.005 * t - 0.5 * dist(i, j, 10, 10);
+      return 1 + 0.2 * sin(phi);
+    },
+    onStart() { runScene('map4'); },
+    onEnd() { setMap('Bulls & Bears'); },
+    music: music.funky,
   },
 
   'Bulls & Bears': {

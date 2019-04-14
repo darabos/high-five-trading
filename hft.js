@@ -1499,7 +1499,7 @@ function talk(side, pic, text) {
     name = name[0].toUpperCase() + name.slice(1);
   }
   const sign = side === 'L' ? '-' : '+';
-  const transform = side === 'L' ? 'rotate3d(5, 10, -2, 10deg)' : 'rotate3d(-5, 10, -2, -10deg)';
+  const transform = 'translateZ(-100px) ' + (side === 'L' ? 'rotate3d(5, 10, -2, 10deg)' : 'rotate3d(-5, 10, -2, -10deg)');
   const talk = document.getElementById('talk');
   if (talk) {
     const img = document.getElementById('talk-pic');
@@ -1528,7 +1528,7 @@ function talk(side, pic, text) {
     onclick="advanceTalk()">
     <div style="
       transition: transform 0.2s ease-out;
-      width: 100%; height: 100%; transform-style: flat;
+      width: 100%; height: 100%;
       padding: 2vh; background: white; transform: ${transform}; flex-direction: ${side === 'L' ? 'row' : 'row-reverse'};
       box-shadow: 0 0.2vh 1vh rgba(0, 0, 0, 0.5); font: 3vh sans-serif; border-radius: 1vh; display: flex;">
       <img id="talk-pic" src="${ pic ? `pics/${pic}` : '' }" style="

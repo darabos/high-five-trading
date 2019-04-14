@@ -1005,8 +1005,9 @@ const maps = {
     },
     onEnd() {
       runScene('epilogue', () => {
-        setMap('demo');
-        showCredits();
+        setMap('demo', () => {
+          showCredits();
+        });
       });
     },
     music: music.reusenoise,
@@ -1055,9 +1056,12 @@ let stocks = [];
 let stairs = [];
 const player = { obj: addPlayer() };
 
-function setMap(name) {
+function setMap(name, cb) {
   flashTime = t + 500;
-  flashFunc = () => setMapNow(name);
+  flashFunc = () => {
+    setMapNow(name);
+    cb && cb();
+  };
 }
 function setMapNow(name) {
   if (name !== 'demo') {

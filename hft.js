@@ -435,11 +435,11 @@ const maps = {
     },
     update(dt) { hf.update(dt); },
     onStart() { runScene('map11pnd'); },
-    onEnd() { setMap('Burrowing Investments'); },
+    onEnd() { setMap('Burrowed Investments'); },
     music: music.reusenoise,
   },
 
-  'Burrowing Investments': {
+  'Burrowed Investments': {
     size: [20, 20],
     capital: [1000, 100000],
     cameraPos: v3(-50, 250, 350),
@@ -767,7 +767,7 @@ const maps = {
     cameraPos: v3(-90, 300, 300),
     size: [20, 20],
     startPos: [10, 19],
-    capital: [1000, 10000],
+    capital: [100, 10000],
     height: (i, j, t) => {
       return 0.1 + 0.2 * map.freqs[j][i] / (j + 10);
     },
@@ -779,6 +779,8 @@ const maps = {
       }
     },
     onStart() {
+      currentMusic.fade(0.5, 0, 1);
+      currentMusic.once('fade', () => playMusic());
       map.lastTime = t || 0;
       map.analyser = Howler.ctx.createAnalyser();
       map.analyser.fftSize = 64;
@@ -1939,8 +1941,9 @@ const script = {
 
 };
 
+let currentMusic;
 function playMusic() {
-  new Howl({
+  currentMusic = new Howl({
     src: map.music || 'https://raw.githubusercontent.com/darabos/high-five-trading/master/silence30.mp3',
     autoplay: true,
     volume: 0.5,

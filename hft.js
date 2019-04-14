@@ -1488,7 +1488,7 @@ function talk(side, pic, text) {
     name = name[0].toUpperCase() + name.slice(1);
   }
   const sign = side === 'L' ? '-' : '+';
-  const transform = side === 'L' ? 'rotate3d(5, 10, -2, 10deg)' : 'rotate3d(-5, 10, -2, -10deg)';
+  const transform = 'translateZ(-20px) ' + side === 'L' ? 'rotate3d(5, 10, -2, 10deg)' : 'rotate3d(-5, 10, -2, -10deg)';
   const talk = document.getElementById('talk');
   if (talk) {
     const img = document.getElementById('talk-pic');

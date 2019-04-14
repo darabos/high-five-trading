@@ -1054,7 +1054,9 @@ for (let i = 0; i < maps.length; ++i) {
 let map;
 let stocks = [];
 let stairs = [];
-const player = { obj: addPlayer() };
+let player = { obj: addPlayer(), keys: {}, keymap: { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', space: ' ' } };
+const players = [player];
+let mode = 'story';
 
 function setMap(name, cb) {
   flashTime = t + 500;
@@ -1102,6 +1104,9 @@ function setMapNow(name) {
   if (map.onStart) {
     map.onStart();
   }
+  resetPlayer(player);
+}
+function resetPlayer(player) {
   player.buyPrice = map.height(player.i, player.j, t);
   player.stocks = floor(map.capital[0] / player.buyPrice);
   player.lookAt = ij2vec(player.i, player.j);
@@ -1131,19 +1136,23 @@ function animate(timestamp) {
       stocks[i][j].scale.y = map.height(i, j, t);
     }
   }
-  const pt = ij2vec(player.i, player.j);
-  if (player.win) {
-    pt.x -= 10;
-    if (t - player.win > 1000) {
-      player.win = false;
-      map.onEnd();
+  for (let player of players) {
+    const pt = ij2vec(player.i, player.j);
+    if (player.win) {
+      pt.x -= 10;
+      if (t - player.win > 1000) {
+        player.win = false;
+        map.onEnd();
+      }
     }
+    player.obj.position.lerp(pt, 1 - pow(0.995, dt));
+    pt.y += 10;
+    player.lookAt.lerp(pt, 1 - pow(0.99, dt));
+    player.obj.lookAt(player.lookAt);
+    player.obj.rotation.z = 0.01 * t;
+    hf.v[player.i][player.j] = min(hf.v[player.i][player.j], -map.playerWeight || 10);
+    player.capital = floor(player.stocks * map.height(player.i, player.j, t));
   }
-  player.obj.position.lerp(pt, 1 - pow(0.995, dt));
-  pt.y += 10;
-  player.lookAt.lerp(pt, 1 - pow(0.99, dt));
-  player.obj.lookAt(player.lookAt);
-  player.obj.rotation.z = 0.01 * t;
   if (map.cameraPos) {
     camera.position.lerp(map.cameraPos, 1 - pow(0.999, dt));
     camera.lookAt(0, 10, 0);
@@ -1156,7 +1165,7 @@ function animate(timestamp) {
     f();
   }
 
-  if (map.capital[1] <= player.capital) {
+  if (map.capital[1] <= player.capital && mode === 'story') {
     if (stairState <= 0) {
       sfx.play('stairs');
     }
@@ -1175,7 +1184,6 @@ function animate(timestamp) {
     e.update(t);
   }
   handleKeys(dt);
-  hf.v[player.i][player.j] = min(hf.v[player.i][player.j], -map.playerWeight || 10);
   for (let i = 0; i < (map.dust || 0) * 0.001 * dt; ++i) {
     particles.spawnParticle(dust);
   }
@@ -1185,8 +1193,10 @@ function animate(timestamp) {
   } else {
     renderer.render(scene, camera);
   }
-  player.capital = floor(player.stocks * map.height(player.i, player.j, t));
   showCapital();
+  if (mode === 'party') {
+    player = players[(players.indexOf(player) + 1) % players.length];
+  }
   map.update && map.update(dt);
 }
 
@@ -1201,7 +1211,7 @@ window.addEventListener('resize', onWindowResize, false);
 
 const effects = [];
 function addBoom(i, j, gain) {
-  const g = Math.min(5, Math.abs(gain * 5));
+  const g = min(5, abs(gain * 5));
   if (g < 0.1) { return; }
   sfx.profit(Math.sign(gain) * g * 1.9);
   const geo = new THREE.TorusGeometry(10, g, 5, 20);
@@ -1229,7 +1239,6 @@ function addBoom(i, j, gain) {
   };
 }
 
-const keys = {};
 function onKeyDown(evt) {
   if (evt.key === 'Escape') {
     evt.preventDefault();
@@ -1238,6 +1247,7 @@ function onKeyDown(evt) {
       document.getElementById('talk').remove();
       talking = false;
     }
+    return;
   }
   if (talking) {
     if (evt.key === ' ' || evt.key === 'Enter') {
@@ -1246,33 +1256,48 @@ function onKeyDown(evt) {
     }
     return;
   }
-  if (evt.key === 'ArrowLeft') { evt.preventDefault(); keys.left = true; }
-  else if (evt.key === 'ArrowRight') { evt.preventDefault(); keys.right = true; }
-  else if (evt.key === 'ArrowUp') { evt.preventDefault(); keys.up = true; }
-  else if (evt.key === 'ArrowDown') { evt.preventDefault(); keys.down = true; }
-  else if (evt.key === ' ') { evt.preventDefault(); keys.space = true; }
+  for (let p of players) {
+    if (evt.key === p.keymap.up || !p.keymap.up) { evt.preventDefault(); p.keys.up = true; p.keymap.up = evt.key; return; }
+    else if (evt.key === p.keymap.down || !p.keymap.down) { evt.preventDefault(); p.keys.down = true; p.keymap.down = evt.key; return; }
+    else if (evt.key === p.keymap.left || !p.keymap.left) { evt.preventDefault(); p.keys.left = true; p.keymap.left = evt.key; return; }
+    else if (evt.key === p.keymap.right || !p.keymap.right) { evt.preventDefault(); p.keys.right = true; p.keymap.right = evt.key; return; }
+    else if (evt.key === p.keymap.space) { evt.preventDefault(); p.keys.space = true; return; }
+  }
+  if (mode === 'party') {
+    // New key => new player.
+    const p = { obj: addPlayer(), keys: {}, keymap: { up: evt.key }, i: floor(rnd() * map.size[0]), j: floor(rnd() * map.size[1]) };
+    resetPlayer(p);
+    players.push(p);
+  }
 }
 function onKeyUp(evt) {
-  if (evt.key === 'ArrowLeft') { keys.left = false; }
-  else if (evt.key === 'ArrowRight') { keys.right = false; }
-  else if (evt.key === 'ArrowUp') { keys.up = false; }
-  else if (evt.key === 'ArrowDown') { keys.down = false; }
-  else if (evt.key === ' ') { keys.space = false; }
+  for (let p of players) {
+    if (evt.key === p.keymap.left) { p.keys.left = false; }
+    else if (evt.key === p.keymap.right) { p.keys.right = false; }
+    else if (evt.key === p.keymap.up) { p.keys.up = false; }
+    else if (evt.key === p.keymap.down) { p.keys.down = false; }
+    else if (evt.key === p.keymap.space) { p.keys.space = false; }
+  }
 }
 document.addEventListener('keydown', onKeyDown, false);
 document.addEventListener('keyup', onKeyUp, false);
 
-const move = { lx: t, ly: t, speed: 150 };
 function handleKeys(dt) {
+  for (let p of players) {
+    handleKeysFor(p, dt);
+  }
+}
+function handleKeysFor(player, dt) {
   if (talking || player.win) { return; }
-  if (keys.space && map.pumpStrength) {
+  if (player.keys.space && map.pumpStrength) {
     hf.u[player.i][player.j] = -map.pumpStrength;
   }
-  let { vx, vy } = keys;
-  if (keys.left) { vx -= 1; }
-  if (keys.right) { vx += 1; }
-  if (keys.up) { vy -= 1; }
-  if (keys.down) { vy += 1; }
+  let vx = player.keys.vx || 0;
+  let vy = player.keys.vy || 0;
+  if (player.keys.left) { vx -= 1; }
+  if (player.keys.right) { vx += 1; }
+  if (player.keys.up) { vy -= 1; }
+  if (player.keys.down) { vy += 1; }
   const gamepad = navigator.getGamepads && navigator.getGamepads()[0];
   if (gamepad) {
     vx += gamepad.axes[0];
@@ -1284,19 +1309,20 @@ function handleKeys(dt) {
     vy /= v;
   }
   const { i, j } = player;
-  if (vx < 0 && move.lx - move.speed / vx < t && player.i > 0) { player.i -= 1; move.lx = t; }
-  if (vx > 0 && move.lx + move.speed / vx < t && player.i < map.size[0] - 1) { player.i += 1; move.lx = t; }
-  if (vy < 0 && move.ly - move.speed / vy < t && player.j > 0) { player.j -= 1; move.ly = t; }
-  if (vy > 0 && move.ly + move.speed / vy < t && player.j < map.size[1] - 1) { player.j += 1; move.ly = t; }
+  player.move = player.move || { lx: 0, ly: 0, speed: 150 };
+  if (vx < 0 && player.move.lx - player.move.speed / vx < t && player.i > 0) { player.i -= 1; player.move.lx = t; }
+  if (vx > 0 && player.move.lx + player.move.speed / vx < t && player.i < map.size[0] - 1) { player.i += 1; player.move.lx = t; }
+  if (vy < 0 && player.move.ly - player.move.speed / vy < t && player.j > 0) { player.j -= 1; player.move.ly = t; }
+  if (vy > 0 && player.move.ly + player.move.speed / vy < t && player.j < map.size[1] - 1) { player.j += 1; player.move.ly = t; }
   if (i !== player.i || j !== player.j) {
     const h0 = map.height(i, j, t);
     addBoom(i, j, h0 - player.buyPrice);
     const h1 = map.height(player.i, player.j, t);
-    player.stocks = Math.max(10, floor(h0 * player.stocks / h1));
+    player.stocks = max(10, floor(h0 * player.stocks / h1));
     player.buyPrice = h1;
-  } else if (vx < 0 && move.lx - move.speed / vx < t && map.capital[1] <= player.capital && player.i == 0 &&
-    player.j < floor(map.size[1] / 2 + 2) && floor(map.size[1] / 2 - 2) < player.j && options.map !== 'demo') {
-    move.lx = t;
+  } else if (vx < 0 && player.move.lx - player.move.speed / vx < t && map.capital[1] <= player.capital && player.i == 0 &&
+    player.j < floor(map.size[1] / 2 + 2) && floor(map.size[1] / 2 - 2) < player.j && options.map !== 'demo' && mode === 'story') {
+    player.move.lx = t;
     player.win = t;
   }
 }
@@ -1315,7 +1341,7 @@ function onTouchStart(e) {
       touch.baseY = t.pageY;
       touch.moveId = t.identifier;
     } else if (touch.count === 2) {
-      keys.space = true;
+      player.keys.space = true;
       touch.spaceId = t.identifier;
     }
   }
@@ -1325,8 +1351,8 @@ function onTouchMove(e) {
   e.preventDefault();
   for (let t of e.changedTouches) {
     if (t.identifier === touch.moveId) {
-      keys.vx = 0.01 * (t.pageX - touch.baseX);
-      keys.vy = 0.01 * (t.pageY - touch.baseY);
+      player.keys.vx = 0.01 * (t.pageX - touch.baseX);
+      player.keys.vy = 0.01 * (t.pageY - touch.baseY);
     }
   }
 }
@@ -1337,11 +1363,11 @@ function onTouchEnd(e) {
     touch.count -= 1;
     if (t.identifier === touch.spaceId) {
       touch.spaceId = undefined;
-      keys.space = false;
+      player.keys.space = false;
     } else if (t.identifier === touch.moveId) {
       touch.moveId = undefined;
-      keys.vx = 0;
-      keys.vy = 0;
+      player.keys.vx = 0;
+      player.keys.vy = 0;
     }
   }
 }
@@ -1400,33 +1426,51 @@ document.body.insertAdjacentHTML('beforeend', `
   display: none; flex-direction: column; justify-content: center; text-align: center; align-items: center;
   color: white; text-shadow: 0 0 0.5vh black;">
   <div style="
-    margin: 3vh; font: 12vh Fascinate, sans-serif;">High Five Trading</div>
-  <div id="menu" style="display: inline-block; font: 5vh Audiowide, sans-serif;">
+    margin: 3vh; font: 11vh Fascinate, sans-serif;">High Five Trading</div>
+  <div id="menu" style="display: inline-block; font: 4vh Audiowide, sans-serif;">
     <style>#menu div { cursor: pointer; margin: 1vh; } #menu div:hover { color: #fff249; }</style>
     <div id="continue" onclick="continueGame()">Continue</div>
     <div id="skip" onclick="skipMap()">Skip this level</div>
     <div onclick="newGame()">New game</div>
+    <div onclick="partyStart()">Party mode</div>
     <div id="sound" onclick="setSound(!options.sound)">☐ Sound</div>
     <div id="bloom" onclick="setBloom(!options.bloom)">☑ Bloom</div>
     <div onclick="showCredits()">Credits</div>
   </div>
 </div>`);
+
 function continueGame() {
   map.onEnd();
+  mode = 'story';
   setMap(options.map);
 }
 function skipMap() {
   map.onEnd();
-  setMap(options.map);
-  map.onEnd();
+  mode = 'story';
+  setMap(options.map, () => map.onEnd());
 }
 function newGame() {
   map.onEnd();
+  mode = 'story';
   setMap('Tutorial');
 }
+let partyExplained = false;
+function partyStart() {
+  map.onEnd();
+  if (partyExplained) {
+    mode = 'party';
+    setMap(options.map);
+  } else {
+    runScene('partyexplanation', () => {
+      mode = 'party';
+      setMap(options.map);
+    });
+  }
+}
+
 function setBloom(setting) {
   options.bloom = setting;
-  renderer.toneMappingExposure = Math.pow(0.9, options.bloom ? 4 : 1);
+  renderer.toneMappingExposure = pow(0.9, options.bloom ? 4 : 1);
   saveOptions();
   document.getElementById('bloom').innerHTML = options.bloom ? '☑ Bloom' : '☐ Bloom';
 }
@@ -1563,10 +1607,12 @@ function advanceTalk() {
   }
 }
 function runScene(scene, ending) {
-  scriptScene = scene;
-  scriptIndex = -1;
-  scriptEnding = ending;
-  advanceTalk();
+  if (mode === 'story') {
+    scriptScene = scene;
+    scriptIndex = -1;
+    scriptEnding = ending;
+    advanceTalk();
+  }
 }
 
 const script = {
@@ -1947,6 +1993,12 @@ const script = {
 ['R', 'fiona-say', "Thanks, sis. We did a great job, didn't we?"],
 ['R', 'fiona-laugh', "High five!"],
 [null, null, "<i>The end. Thanks for playing!</i>"],
+  ],
+
+  partyexplanation: [
+[null, null, "Party mode is a timed game on the current level. Try to score as much as you can in 2 minutes.\n\n" +
+             "Party mode can be played competitively or collaboratively as a local multiplayer game on the keyboard."],
+[null, null, "To add a new player, just press the <b>up</b>, <b>down</b>, <b>left</b>, <b>right</b> keys for the new player in order when the game starts. Reload the page to reset the controls."],
   ],
 
 };

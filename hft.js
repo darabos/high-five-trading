@@ -1117,7 +1117,7 @@ function ij2vec(i, j) {
 }
 
 let startTime;
-let t = performance.now();
+let t = 0;
 let stairState;
 let flashTime = t;
 let flashFunc;
@@ -1261,30 +1261,41 @@ function onKeyUp(evt) {
 document.addEventListener('keydown', onKeyDown, false);
 document.addEventListener('keyup', onKeyUp, false);
 
-let keyBattery = 0;
+const move = { lx: t, ly: t, speed: 150 };
 function handleKeys(dt) {
-  const speed = 150;
-  keyBattery = min(speed + dt, keyBattery + dt);
   if (talking || player.win) { return; }
   if (keys.space && map.pumpStrength) {
     hf.u[player.i][player.j] = -map.pumpStrength;
   }
-  if (keyBattery < speed) { return; }
-  if (!keys.left && !keys.right && !keys.up && !keys.down) { return; }
-  const {i, j} = player;
-  keyBattery -= speed;
-  if (keys.left && player.i > 0) { player.i -= 1; }
-  if (keys.right && player.i < map.size[0] - 1) { player.i += 1; }
-  if (keys.up && player.j > 0) { player.j -= 1; }
-  if (keys.down && player.j < map.size[1] - 1) { player.j += 1; }
+  let { vx, vy } = keys;
+  if (keys.left) { vx -= 1; }
+  if (keys.right) { vx += 1; }
+  if (keys.up) { vy -= 1; }
+  if (keys.down) { vy += 1; }
+  const gamepad = navigator.getGamepads && navigator.getGamepads()[0];
+  if (gamepad) {
+    vx += gamepad.axes[0];
+    vy += gamepad.axes[1];
+  }
+  const v = sqrt(vx * vx + vy * vy);
+  if (v > 1) {
+    vx /= v;
+    vy /= v;
+  }
+  const { i, j } = player;
+  if (vx < 0 && move.lx - move.speed / vx < t && player.i > 0) { player.i -= 1; move.lx = t; }
+  if (vx > 0 && move.lx + move.speed / vx < t && player.i < map.size[0] - 1) { player.i += 1; move.lx = t; }
+  if (vy < 0 && move.ly - move.speed / vy < t && player.j > 0) { player.j -= 1; move.ly = t; }
+  if (vy > 0 && move.ly + move.speed / vy < t && player.j < map.size[1] - 1) { player.j += 1; move.ly = t; }
   if (i !== player.i || j !== player.j) {
     const h0 = map.height(i, j, t);
     addBoom(i, j, h0 - player.buyPrice);
     const h1 = map.height(player.i, player.j, t);
     player.stocks = Math.max(10, floor(h0 * player.stocks / h1));
     player.buyPrice = h1;
-  } else if (keys.left && map.capital[1] <= player.capital && player.i == 0 &&
+  } else if (vx < 0 && move.lx - move.speed / vx < t && map.capital[1] <= player.capital && player.i == 0 &&
     player.j < floor(map.size[1] / 2 + 2) && floor(map.size[1] / 2 - 2) < player.j && options.map !== 'demo') {
+    move.lx = t;
     player.win = t;
   }
 }
@@ -1313,12 +1324,8 @@ function onTouchMove(e) {
   e.preventDefault();
   for (let t of e.changedTouches) {
     if (t.identifier === touch.moveId) {
-      const dx = t.pageX - touch.baseX;
-      const dy = t.pageY - touch.baseY;
-      keys.up = dy < -10;
-      keys.down = 10 < dy;
-      keys.left = dx < -10;
-      keys.right = 10 < dx;
+      keys.vx = 0.01 * (t.pageX - touch.baseX);
+      keys.vy = 0.01 * (t.pageY - touch.baseY);
     }
   }
 }
@@ -1332,10 +1339,8 @@ function onTouchEnd(e) {
       keys.space = false;
     } else if (t.identifier === touch.moveId) {
       touch.moveId = undefined;
-      keys.left = false;
-      keys.right = false;
-      keys.up = false;
-      keys.down = false;
+      keys.vx = 0;
+      keys.vy = 0;
     }
   }
 }
@@ -1675,7 +1680,7 @@ const script = {
 ['R', 'fiona-embarrassed', "Yes, I was jealous at some point."],
 ['R', 'fiona-thoughtful', "But not anymore. I just want to understand what happened to her."],
 ['L', 'mom-say', "Is that worth the risk?"],
-['L', 'mom-say', "Would you press SPACE to Pump & Dump a stock and risk angering the market forces?"],
+['L', 'mom-say', "Would you press SPACE or tap with a second finger to Pump & Dump a stock and risk angering the market forces?"],
   ],
 
   map12didit: [

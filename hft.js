@@ -1151,8 +1151,9 @@ function animate(timestamp) {
   const flash = pow(1.00001, -(flashTime - t) * (flashTime - t));
   renderer.toneMappingExposure = pow(0.9, (options.bloom ? 4 : 1) - 10 * flash);
   if (flashFunc && flashTime < t) {
-    flashFunc();
+    const f = flashFunc;
     flashFunc = undefined;
+    f();
   }
 
   if (map.capital[1] <= player.capital) {

@@ -1257,11 +1257,18 @@ function onKeyDown(evt) {
     return;
   }
   for (let p of players) {
-    if (evt.key === p.keymap.up || !p.keymap.up) { evt.preventDefault(); p.keys.up = true; p.keymap.up = evt.key; return; }
-    else if (evt.key === p.keymap.down || !p.keymap.down) { evt.preventDefault(); p.keys.down = true; p.keymap.down = evt.key; return; }
-    else if (evt.key === p.keymap.left || !p.keymap.left) { evt.preventDefault(); p.keys.left = true; p.keymap.left = evt.key; return; }
-    else if (evt.key === p.keymap.right || !p.keymap.right) { evt.preventDefault(); p.keys.right = true; p.keymap.right = evt.key; return; }
-    else if (evt.key === p.keymap.space) { evt.preventDefault(); p.keys.space = true; return; }
+    for (let dir of ['up', 'down', 'left', 'right']) {
+      if (evt.key === p.keymap[dir] || !p.keymap[dir]) {
+        evt.preventDefault();
+        p.keys[dir] = true;
+        if (!p.keymap[dir]) {
+          p.keymap[dir] = evt.key;
+          createPlayerCapitals();
+        }
+        return;
+      }
+    }
+    if (evt.key === p.keymap.space) { evt.preventDefault(); p.keys.space = true; return; }
   }
   if (mode === 'party') {
     // New key => new player.
@@ -1384,20 +1391,58 @@ document.body.insertAdjacentHTML('beforeend', `
     position: absolute; top: 0; right: 1vh;
     padding: 2vh 0; color: white;
     font: 4vh monospace; text-shadow: 0 0 0.5vh black;"></div>
-  <div style="border: 0.2vh solid white; position: absolute; bottom: 1vh; right: 1vh;
-              width: 5vh; height: 90vh; box-sizing: border-box;">
-    <div id="capital" style="background: white; position: absolute; bottom: 0; width: 100%;">
+  <div style="position: absolute; bottom: 0; right: 0; height: 90vh; display: flex;" id="capital-bars">
+    <div style="position: relative; border: 0.2vh solid white; height: calc(100% - 3vh); width: 5vh; margin: 1vh;">
+      <div id="capital2" style="background: white; position: absolute; bottom: 0; width: 100%;">
+      </div>
     </div>
   </div>
 </div>`);
+function createPlayerCapitals() {
+  const bars = document.getElementById('capital-bars');
+  bars.innerHTML = '';
+  for (let i = 0; i < players.length; ++i) {
+    const p = players[i];
+    let label = '';
+    if (mode === 'party') {
+      label = `
+        <div id="capital-player" style="color: white; font: 4vh sans-serif; text-align: center; margin: 2vh 0">
+          ${ playerName(p) }
+        </div>`;
+    }
+    bars.insertAdjacentHTML('beforeend', `
+      <div style="position: relative; border: 0.2vh solid white; height: calc(100% - 3vh); width: 5vh; margin: 1vh;">
+        ${label}
+        <div id="capital-${i}" style="background: white; position: absolute; bottom: 0; width: 100%;">
+        </div>
+      </div>`);
+  }
+}
+createPlayerCapitals();
+
+function playerName(p) {
+  const mapping = {
+    'ArrowLeft': '←', 'ArrowRight': '→', 'ArrowUp': '↑', 'ArrowDown': '↓',
+    'Enter': '⏎', 'Shift': '⇧', 'Backspace': '⌫', 'Control': '⌃', 'Delete': '⌦',
+    'Tab': '⇥', 'Meta': '⌘', 'Alt': '⌥', 'CapsLock': '⇪' };
+  return [p.keymap.left, p.keymap.down, p.keymap.right, p.keymap.up].map(k => mapping[k] || k || '?').join(' ');
+}
+
 const numberFormat = new Intl.NumberFormat('en-us');
 function showCapital() {
-  const pct = min(100, 100 * player.capital / map.capital[1]);
-  document.getElementById('capital').style.height = pct + '%';
-  document.getElementById('capital').style.backgroundColor = pct === 100 ? '#ffff44' : 'white';
-  document.getElementById('capital').parentElement.style.borderColor = pct === 100 ? '#ffff44' : 'white';
-  document.getElementById('capital-string').style.color = pct === 100 ? '#ffff44' : 'white';
-  document.getElementById('capital-string').innerHTML = '$' + numberFormat.format((map.moneyScale || 1000) * player.capital);
+  const capstr = document.getElementById('capital-string');
+  for (let i = 0; i < players.length; ++i) {
+    const p = players[i];
+    const pct = min(100, 100 * p.capital / map.capital[1]);
+    const cap = document.getElementById(`capital-${i}`);
+    cap.style.height = pct + '%';
+    cap.style.backgroundColor = pct === 100 ? '#ffff44' : 'white';
+    cap.parentElement.style.borderColor = pct === 100 ? '#ffff44' : 'white';
+    if (mode === 'story') {
+      capstr.style.color = pct === 100 ? '#ffff44' : 'white';
+      capstr.innerHTML = '$' + numberFormat.format((map.moneyScale || 1000) * p.capital);
+    }
+  }
 }
 
 const options = {

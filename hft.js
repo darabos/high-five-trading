@@ -218,6 +218,7 @@ const maps = {
       document.getElementById('menu-group').style.display = 'flex';
       document.getElementById('continue').style.display = options.map ? 'block' : 'none';
       document.getElementById('skip').style.display = options.map ? 'block' : 'none';
+      document.getElementById('party-mode').style.display = (options.map && options.map != 'Tutorial') ? 'block' : 'none';
     },
     onEnd() {
       document.getElementById('capital-group').style.display = '';
@@ -1530,7 +1531,7 @@ document.body.insertAdjacentHTML('beforeend', `
     <div id="continue" onclick="continueGame()">Continue</div>
     <div id="skip" onclick="skipMap()">Skip this level</div>
     <div onclick="newGame()">New game</div>
-    <div onclick="startParty()">Party mode</div>
+    <div id="party-mode" onclick="startParty()">Party mode</div>
     <div id="sound" onclick="setSound(!options.sound)">☐ Sound</div>
     <div id="bloom" onclick="setBloom(!options.bloom)">☑ Bloom</div>
     <div onclick="showCredits()">Credits</div>

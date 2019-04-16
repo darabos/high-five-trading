@@ -1538,16 +1538,19 @@ document.body.insertAdjacentHTML('beforeend', `
 function continueGame() {
   map.onEnd();
   mode = 'story';
+  setSinglePlayer();
   setMap(options.map);
 }
 function skipMap() {
   map.onEnd();
   mode = 'story';
+  setSinglePlayer();
   setMap(options.map, () => map.onEnd());
 }
 function newGame() {
   map.onEnd();
   mode = 'story';
+  setSinglePlayer();
   setMap('Tutorial');
 }
 let partyExplained = false;
@@ -1567,6 +1570,16 @@ function startParty() {
       setMap(options.map);
     });
   }
+}
+
+function setSinglePlayer() {
+  for (let i = 1; i < players.length; ++i) {
+    const p = players[i];
+    scene.remove(p.obj);
+  }
+  players.splice(1);
+  player = players[0];
+  createPlayerCapitals();
 }
 
 function setBloom(setting) {

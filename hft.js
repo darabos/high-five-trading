@@ -142,9 +142,22 @@ function addStairs() {
   return stairs;
 }
 
-function addPlayer() {
-  const geo = new THREE.SphereGeometry(3, 4, 2);
-  const mat = new THREE.MeshPhongMaterial( { color: 0x896215, emissive: 0x896215, flatShading: true } );
+const playerGeos = [
+  new THREE.SphereGeometry(3, 4, 2),
+  new THREE.CylinderGeometry(3, 3, 1),
+  new THREE.TetrahedronGeometry(3),
+  new THREE.IcosahedronGeometry(3),
+  new THREE.TorusGeometry(3, 1, 5, 20),
+];
+playerGeos[4].lookAt(v3(0, 1, 0));
+const playerColors = [
+  0x896215,
+  0x621589,
+  0x901010,
+  0x309010,
+];
+function addPlayer(geo, color) {
+  const mat = new THREE.MeshPhongMaterial( { color, emissive: color, flatShading: true } );
   const obj = new THREE.Mesh(geo, mat);
   scene.add(obj);
   return obj;
@@ -1054,7 +1067,11 @@ for (let i = 0; i < maps.length; ++i) {
 let map;
 let stocks = [];
 let stairs = [];
-let player = { obj: addPlayer(), keys: {}, keymap: { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', space: ' ' } };
+let player = {
+  obj: addPlayer(playerGeos[0], playerColors[0]),
+  keys: {},
+  keymap: { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', space: ' ' },
+};
 const players = [player];
 let mode = 'story';
 
@@ -1272,9 +1289,16 @@ function onKeyDown(evt) {
   }
   if (mode === 'party') {
     // New key => new player.
-    const p = { obj: addPlayer(), keys: {}, keymap: { up: evt.key }, i: floor(rnd() * map.size[0]), j: floor(rnd() * map.size[1]) };
+    const p = {
+      obj: addPlayer(playerGeos[players.length % playerGeos.length], playerColors[players.length % playerColors.length]),
+      keys: {},
+      keymap: { up: evt.key },
+      i: floor(rnd() * map.size[0]),
+      j: floor(rnd() * map.size[1]),
+    };
     resetPlayer(p);
     players.push(p);
+    createPlayerCapitals();
   }
 }
 function onKeyUp(evt) {
@@ -1425,7 +1449,8 @@ function playerName(p) {
     'ArrowLeft': '←', 'ArrowRight': '→', 'ArrowUp': '↑', 'ArrowDown': '↓',
     'Enter': '⏎', 'Shift': '⇧', 'Backspace': '⌫', 'Control': '⌃', 'Delete': '⌦',
     'Tab': '⇥', 'Meta': '⌘', 'Alt': '⌥', 'CapsLock': '⇪' };
-  return [p.keymap.left, p.keymap.down, p.keymap.right, p.keymap.up].map(k => mapping[k] || k || '?').join(' ');
+  const keys = [p.keymap.left, p.keymap.down, p.keymap.right, p.keymap.up];
+  return keys.map(k => mapping[k] || k || '?').map(k => k.toUpperCase()).join(' ');
 }
 
 const numberFormat = new Intl.NumberFormat('en-us');
@@ -1440,7 +1465,15 @@ function showCapital() {
     cap.parentElement.style.borderColor = pct === 100 ? '#ffff44' : 'white';
     if (mode === 'story') {
       capstr.style.color = pct === 100 ? '#ffff44' : 'white';
-      capstr.innerHTML = '$' + numberFormat.format((map.moneyScale || 1000) * p.capital);
+      capstr.innerText = '$' + numberFormat.format((map.moneyScale || 1000) * p.capital);
+    } else {
+      capstr.style.color = 'white';
+      const timeLeft = max(0, partyStarted + partyDuration - t);
+      let minutes = floor(timeLeft / 60000);
+      let seconds = floor(timeLeft / 1000) - 60 * minutes;
+      if (minutes < 10) { minutes = '0' + minutes; }
+      if (seconds < 10) { seconds = '0' + seconds; }
+      capstr.innerText = `${minutes}:${seconds}`;
     }
   }
 }
@@ -1500,14 +1533,18 @@ function newGame() {
   setMap('Tutorial');
 }
 let partyExplained = false;
+let partyStarted;
+const partyDuration = 2 * 60 * 1000;
 function partyStart() {
   map.onEnd();
   if (partyExplained) {
     mode = 'party';
+    partyStarted = t;
     setMap(options.map);
   } else {
     runScene('partyexplanation', () => {
       mode = 'party';
+      partyStarted = t;
       setMap(options.map);
     });
   }
@@ -1561,12 +1598,16 @@ document.body.insertAdjacentHTML('beforeend', `
       by <a href="https://twitter.com/GoldFireStudios">James Simpson</a> & others,
       <a href="https://github.com/loov/jsfx">jsfx</a>
       by <a href="https://twitter.com/egonelbre">Egon Elbre</a> & others.
-
     </p>
     <p>
       Using the <a href="https://fonts.google.com/specimen/Fascinate">Fascinate</a>
       and <a href="https://fonts.google.com/specimen/Audiowide">Audiowide</a>
       fonts by <a href="http://astigmatic.com/">Astigmatic</a> under the Open Font License.
+    </p>
+    <p>
+      The Mount Everest height map is from the
+      <a href="https://cgiarcsi.community/data/srtm-90m-digital-elevation-database-v4-1/">SRTM 90m Digital Elevation Database v4.1</a>
+      by way of <a href="https://terrain.party/">terrain.party</a>.
     </p>
 
   </div>

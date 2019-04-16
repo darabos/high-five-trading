@@ -1200,7 +1200,24 @@ function animate(timestamp) {
   for (let e of effects) {
     e.update(t);
   }
-  handleKeys(dt);
+  if (mode === 'party') {
+    player = players[(players.indexOf(player) + 1) % players.length];
+    const timeLeft = max(0, partyStarted + partyDuration - t);
+    let seconds = Math.ceil(timeLeft / 1000);
+    let minutes = floor(seconds / 60);
+    seconds -= minutes * 60;
+    if (minutes < 10) { minutes = '0' + minutes; }
+    if (seconds < 10) { seconds = '0' + seconds; }
+    document.getElementById('map-name').textContent = `${minutes}:${seconds}`;
+    if (timeLeft > 0) {
+      handleKeys(dt);
+      showCapital();
+    }
+  } else {
+    handleKeys(dt);
+    showCapital();
+  }
+  map.update && map.update(dt);
   for (let i = 0; i < (map.dust || 0) * 0.001 * dt; ++i) {
     particles.spawnParticle(dust);
   }
@@ -1210,11 +1227,6 @@ function animate(timestamp) {
   } else {
     renderer.render(scene, camera);
   }
-  showCapital();
-  if (mode === 'party') {
-    player = players[(players.indexOf(player) + 1) % players.length];
-  }
-  map.update && map.update(dt);
 }
 
 function onWindowResize() {
@@ -1259,6 +1271,7 @@ function addBoom(i, j, gain) {
 function onKeyDown(evt) {
   if (evt.key === 'Escape') {
     evt.preventDefault();
+    mode = 'story';
     setMap('demo');
     if (talking) {
       document.getElementById('talk').remove();
@@ -1413,7 +1426,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="capital-group">
   <div id="capital-string" style="
     position: absolute; top: 0; right: 1vh;
-    padding: 2vh 0; color: white;
+    padding: 2vh 0; color: white; max-width: calc(100% - 2vh); overflow-wrap: break-word;
     font: 4vh monospace; text-shadow: 0 0 0.5vh black;"></div>
   <div style="position: absolute; bottom: 0; right: 0; height: 90vh; display: flex;" id="capital-bars">
     <div style="position: relative; border: 0.2vh solid white; height: calc(100% - 3vh); width: 5vh; margin: 1vh;">
@@ -1431,7 +1444,7 @@ function createPlayerCapitals() {
     if (mode === 'party') {
       label = `
         <div id="capital-player" style="color: white; font: 4vh sans-serif; text-align: center; margin: 2vh 0">
-          ${ playerName(p) }
+          ${ playerName(p, '<br>') }
         </div>`;
     }
     bars.insertAdjacentHTML('beforeend', `
@@ -1444,37 +1457,37 @@ function createPlayerCapitals() {
 }
 createPlayerCapitals();
 
-function playerName(p) {
+function playerName(p, j) {
   const mapping = {
     'ArrowLeft': '←', 'ArrowRight': '→', 'ArrowUp': '↑', 'ArrowDown': '↓',
     'Enter': '⏎', 'Shift': '⇧', 'Backspace': '⌫', 'Control': '⌃', 'Delete': '⌦',
     'Tab': '⇥', 'Meta': '⌘', 'Alt': '⌥', 'CapsLock': '⇪' };
-  const keys = [p.keymap.left, p.keymap.down, p.keymap.right, p.keymap.up];
-  return keys.map(k => mapping[k] || k || '?').map(k => k.toUpperCase()).join(' ');
+  const keys = [p.keymap.up, p.keymap.down, p.keymap.left, p.keymap.right];
+  return keys.map(k => mapping[k] || k || '?').map(k => k.toUpperCase()).join(j);
 }
 
 const numberFormat = new Intl.NumberFormat('en-us');
 function showCapital() {
   const capstr = document.getElementById('capital-string');
+  const maxcap = max(...players.map(p => p.capital));
+  let topPlayer = player;
   for (let i = 0; i < players.length; ++i) {
     const p = players[i];
-    const pct = min(100, 100 * p.capital / map.capital[1]);
+    if (p.capital === maxcap) {
+      topPlayer = p;
+    }
+    const pct = min(100, 100 * p.capital / max(maxcap, map.capital[1]));
     const cap = document.getElementById(`capital-${i}`);
     cap.style.height = pct + '%';
     cap.style.backgroundColor = pct === 100 ? '#ffff44' : 'white';
     cap.parentElement.style.borderColor = pct === 100 ? '#ffff44' : 'white';
-    if (mode === 'story') {
-      capstr.style.color = pct === 100 ? '#ffff44' : 'white';
-      capstr.innerText = '$' + numberFormat.format((map.moneyScale || 1000) * p.capital);
-    } else {
-      capstr.style.color = 'white';
-      const timeLeft = max(0, partyStarted + partyDuration - t);
-      let minutes = floor(timeLeft / 60000);
-      let seconds = floor(timeLeft / 1000) - 60 * minutes;
-      if (minutes < 10) { minutes = '0' + minutes; }
-      if (seconds < 10) { seconds = '0' + seconds; }
-      capstr.innerText = `${minutes}:${seconds}`;
-    }
+  }
+  if (mode === 'story') {
+    capstr.style.color = player.capital >= map.capital[1] ? '#ffff44' : 'white';
+    capstr.innerText = '$' + numberFormat.format(1000 * player.capital);
+  } else {
+    capstr.style.color = 'white';
+    capstr.innerText = '$' + numberFormat.format(1000 * maxcap) + ' for ' + playerName(topPlayer, ' ');
   }
 }
 
@@ -1510,7 +1523,7 @@ document.body.insertAdjacentHTML('beforeend', `
     <div id="continue" onclick="continueGame()">Continue</div>
     <div id="skip" onclick="skipMap()">Skip this level</div>
     <div onclick="newGame()">New game</div>
-    <div onclick="partyStart()">Party mode</div>
+    <div onclick="startParty()">Party mode</div>
     <div id="sound" onclick="setSound(!options.sound)">☐ Sound</div>
     <div id="bloom" onclick="setBloom(!options.bloom)">☑ Bloom</div>
     <div onclick="showCredits()">Credits</div>
@@ -1535,7 +1548,7 @@ function newGame() {
 let partyExplained = false;
 let partyStarted;
 const partyDuration = 2 * 60 * 1000;
-function partyStart() {
+function startParty() {
   map.onEnd();
   if (partyExplained) {
     mode = 'party';
@@ -1543,6 +1556,7 @@ function partyStart() {
     setMap(options.map);
   } else {
     runScene('partyexplanation', () => {
+      partyExplained = true;
       mode = 'party';
       partyStarted = t;
       setMap(options.map);

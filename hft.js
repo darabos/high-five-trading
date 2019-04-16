@@ -1148,6 +1148,15 @@ function animate(timestamp) {
   if (startTime === undefined) { startTime = timestamp; }
   const dt = min(100, timestamp - startTime - t || 0);
   t = timestamp - startTime;
+
+  const flash = pow(1.00001, -(flashTime - t) * (flashTime - t));
+  renderer.toneMappingExposure = pow(0.9, (options.bloom ? 4 : 1) - 10 * flash);
+  if (flashFunc && flashTime < t) {
+    const f = flashFunc;
+    flashFunc = undefined;
+    f();
+  }
+
   for (let i = 0; i < map.size[0]; ++i) {
     for (let j = 0; j < map.size[1]; ++j) {
       stocks[i][j].scale.y = map.height(i, j, t);
@@ -1178,13 +1187,6 @@ function animate(timestamp) {
   if (map.cameraPos) {
     camera.position.lerp(map.cameraPos, 1 - pow(0.999, dt));
     camera.lookAt(0, 10, 0);
-  }
-  const flash = pow(1.00001, -(flashTime - t) * (flashTime - t));
-  renderer.toneMappingExposure = pow(0.9, (options.bloom ? 4 : 1) - 10 * flash);
-  if (flashFunc && flashTime < t) {
-    const f = flashFunc;
-    flashFunc = undefined;
-    f();
   }
 
   if (map.capital[1] <= player.capital && mode === 'story') {

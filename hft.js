@@ -1162,7 +1162,12 @@ function animate(timestamp) {
         map.onEnd();
       }
     }
-    player.obj.position.lerp(pt, 1 - pow(0.995, dt));
+    function lerp(dim, r) {
+      player.obj.position[dim] = player.obj.position[dim] * r + pt[dim] * (1 - r);
+    }
+    lerp('x', pow(0.995, dt));
+    lerp('z', pow(0.995, dt));
+    lerp('y', pow(0.99, dt));
     pt.y += 10;
     player.lookAt.lerp(pt, 1 - pow(0.99, dt));
     player.obj.lookAt(player.lookAt);

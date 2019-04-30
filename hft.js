@@ -1277,7 +1277,9 @@ function addBoom(i, j, gain) {
 }
 
 function onKeyDown(evt) {
-  if (evt.key === 'Escape') {
+  if (evt.key === 'Escape' && map === maps.demo) {
+    hideCredits();
+  } else if (evt.key === 'Escape') {
     evt.preventDefault();
     mode = 'story';
     setMap('demo');
